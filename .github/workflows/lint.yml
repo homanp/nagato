@@ -30,7 +30,6 @@ jobs:
           cache: poetry
       - name: Install dependencies
         run: |
-          cd libs/superagent
           poetry install
       - name: Analysing the code with our lint
         run: |
