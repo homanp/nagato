@@ -1,0 +1,55 @@
+[tool.poetry]
+name = "shinobi"
+version = "0.0.1"
+description = ""
+authors = ["Ismail Pelaseyed"]
+readme = "./README.md"
+packages = [{include = "lib"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+fastapi = {extras = ["all"], version = "^0.95.1"}
+uvicorn = {extras = ["standard"], version = "^0.22.0"}
+gunicorn = "^20.1.0"
+python-decouple = "^3.8"
+pydantic = "^1.10.7"
+sse-starlette = "^1.5.0"
+flake8 = "^6.0.0"
+ruff = "^0.0.265"
+black = "^23.3.0"
+prefect = "^2.11.4"
+pinecone-client = "^2.2.2"
+unstructured = "^0.10.16"
+requests = "^2.31.0"
+colorlog = "^6.7.0"
+vulture = "^2.7"
+prisma = "^0.9.1"
+asyncio = "^3.4.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.vulture]
+exclude = [
+    "*settings.py",
+    "*/docs/*.py",
+    "*/test_*.py",
+    "*/.venv/*.py",
+    ]
+ignore_decorators = ["@app.route", "@require_*"]
+ignore_names = ["visit_*", "do_*"]
+make_whitelist = true
+min_confidence = 100
+paths = ["."]
+sort_by_size = true
+verbose = false
+
+[tool.ruff]
+exclude = [
+    "*settings.py",
+    "*/docs/*.py",
+    "*/test_*.py",
+    "*/.venv/*.py",
+    "whitelist.py"
+    ]
