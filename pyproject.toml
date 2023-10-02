@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "shinobi"
+name = "nagato"
 version = "0.0.1"
 description = ""
 authors = ["Ismail Pelaseyed"]
