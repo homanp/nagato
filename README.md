@@ -23,6 +23,7 @@
   <a href="#key-benefits">Key benefits</a> •
   <a href="#how-it-works">How it works</a>
 </p>
+
 -----
 
 ## Features
