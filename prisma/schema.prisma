@@ -1,0 +1,33 @@
+generator client {
+    provider  = "prisma-client-py"
+    interface = "asyncio"
+}
+
+datasource db {
+    provider          = "postgresql"
+    url               = env("DATABASE_MIGRATION_URL")
+    shadowDatabaseUrl = env("DATABASE_SHADOW_URL")
+}
+
+enum DatasourceType {
+    TXT
+    PDF
+    CSV
+    MARKDOWN
+}
+
+enum DatasourceStatus {
+    IN_PROGRESS
+    DONE
+    FAILED
+}
+
+model Datasource {
+    id        String           @id @default(uuid())
+    content   String?          @db.Text()
+    status    DatasourceStatus @default(IN_PROGRESS)
+    type      DatasourceType
+    url       String?
+    createdAt DateTime         @default(now())
+    updatedAt DateTime         @updatedAt
+}
