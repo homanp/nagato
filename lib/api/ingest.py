@@ -1,4 +1,7 @@
 from fastapi import APIRouter
+from lib.utils.prisma import prisma
+
+from lib.service.embedding import EmbeddingService
 
 router = APIRouter()
 
@@ -8,6 +11,12 @@ router = APIRouter()
     name="ingest",
     description="Ingest data",
 )
-async def ingest():
+async def ingest(body: dict):
     """Endpoint for ingesting data"""
+    datasource = await prisma.datasource.create(data={**body})
+    embedding_service = EmbeddingService(datasource=datasource)
+    documents = embedding_service.generate_documents()
+    nodes = embedding_service.generate_chunks(documents=documents)
+    qa_pairs = embedding_service.generate_qa_pairs(nodes=nodes)
+    print(qa_pairs)
     return {"success": True, "data": None}
