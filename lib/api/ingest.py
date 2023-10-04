@@ -1,7 +1,7 @@
 from fastapi import APIRouter
-from lib.utils.prisma import prisma
 
 from lib.service.embedding import EmbeddingService
+from lib.utils.prisma import prisma
 
 router = APIRouter()
 

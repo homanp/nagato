@@ -1,17 +1,15 @@
-import requests
-
-from numpy import ndarray
-from typing import Any, Dict, List, Union
-from prisma.models import Datasource
 from tempfile import NamedTemporaryFile
+from typing import List, Union
+
+import requests
 from decouple import config
+from llama_index import Document, SimpleDirectoryReader
+from llama_index.node_parser import SimpleNodeParser
+from numpy import ndarray
 from sentence_transformers import SentenceTransformer
 
-from llama_index import SimpleDirectoryReader
-from llama_index.node_parser import SimpleNodeParser
-from llama_index import Document
-
 from lib.service.vectordb import get_vector_service
+from prisma.models import Datasource
 
 
 class EmbeddingService:

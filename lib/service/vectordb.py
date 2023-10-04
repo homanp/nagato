@@ -1,9 +1,9 @@
-import pinecone
-
-from numpy import ndarray
-from typing import List
 from abc import ABC, abstractmethod
+from typing import List
+
+import pinecone
 from decouple import config
+from numpy import ndarray
 
 
 class VectorDBService(ABC):
@@ -27,7 +27,8 @@ class PineconeVectorService(VectorDBService):
             index_name=index_name, dimension=dimension, namespace=namespace
         )
         pinecone.init(api_key=config("PINECONE_API_KEY"))
-        # Create a new vector index if it doesn't exist dimensions should be passed in the arguments
+        # Create a new vector index if it doesn't
+        # exist dimensions should be passed in the arguments
         if index_name not in pinecone.list_indexes():
             pinecone.create_index(
                 name=index_name, metric="cosine", shards=1, dimension=dimension
