@@ -17,6 +17,6 @@ async def ingest(body: dict):
     embedding_service = EmbeddingService(datasource=datasource)
     documents = embedding_service.generate_documents()
     nodes = embedding_service.generate_chunks(documents=documents)
-    qa_pairs = embedding_service.generate_qa_pairs(nodes=nodes)
-    print(qa_pairs)
+    embeddings = embedding_service.generate_embeddings(nodes=nodes)
+    print(embeddings)
     return {"success": True, "data": None}
