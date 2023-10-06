@@ -23,37 +23,47 @@ class FinetuningService(ABC):
 
 class OpenAIFinetuningService(FinetuningService):
     def __init__(
-        self, nodes: List[Union[Document, None]], num_questions_per_chunk: int = 10
+        self,
+        nodes: List[Union[Document, None]],
+        num_questions_per_chunk: int = 10,
+        batch_size: int = 10,
     ):
         super().__init__(nodes=nodes)
         self.num_questions_per_chunk = num_questions_per_chunk
+        self.batch_size = batch_size
 
     async def generate_prompt_and_completion(self, node):
         prompt = generate_qa_pair_prompt(
             context=node.text, num_of_qa_paris=10, format=GPT_DATA_FORMAT
         )
         completion = await openai.ChatCompletion.acreate(
-            model="gpt-3.5-turbo", messages=[{"role": "user", "content": prompt}]
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3,
         )
         return completion.choices[0].message.content
 
     async def generate_dataset(self):
         with open("dataset.jsonl", "w") as f:
-            for i in range(0, len(self.nodes), 10):  # Process nodes in chunks of 10
+            for i in range(
+                0, len(self.nodes), self.batch_size
+            ):  # Process nodes in chunks of batch_size
                 tasks = [
                     self.generate_prompt_and_completion(node)
-                    for node in self.nodes[i : i + 10]
+                    for node in self.nodes[i : i + self.batch_size]
                 ]
-                results = await asyncio.gather(*tasks)
-                for data in results:
-                    json.dump(data, f)
-                    f.write("\n")
+                qa_pairs = await asyncio.gather(*tasks)
+                for qa_pair in qa_pairs:
+                    json_objects = qa_pair.split("\n\n")
+                    for json_obj in json_objects:
+                        f.write(json_obj + "\n")
 
 
 async def get_finetuning_service(
     nodes: List[Union[Document, None]],
     provider: str = "openai",
     num_questions_per_chunk: int = 10,
+    batch_size: int = 10,
 ):
     services = {
         "openai": OpenAIFinetuningService,
@@ -62,4 +72,8 @@ async def get_finetuning_service(
     service = services.get(provider)
     if service is None:
         raise ValueError(f"Unsupported provider: {provider}")
-    return service(nodes=nodes, num_questions_per_chunk=num_questions_per_chunk)
+    return service(
+        nodes=nodes,
+        num_questions_per_chunk=num_questions_per_chunk,
+        batch_size=batch_size,
+    )
