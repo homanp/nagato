@@ -1,6 +1,7 @@
 from fastapi import APIRouter
+from service.flows import create_embeddings, create_finetune
 
-from lib.service.embedding import EmbeddingService
+from lib.models.ingest import IngestRequest
 from lib.utils.prisma import prisma
 
 router = APIRouter()
@@ -11,12 +12,9 @@ router = APIRouter()
     name="ingest",
     description="Ingest data",
 )
-async def ingest(body: dict):
+async def ingest(body: IngestRequest):
     """Endpoint for ingesting data"""
     datasource = await prisma.datasource.create(data={**body})
-    embedding_service = EmbeddingService(datasource=datasource)
-    documents = embedding_service.generate_documents()
-    nodes = embedding_service.generate_chunks(documents=documents)
-    embeddings = embedding_service.generate_embeddings(nodes=nodes)
-    print(embeddings)
-    return {"success": True, "data": None}
+    await create_embeddings(datasource=datasource)
+    await create_finetune(datasource=datasource)
+    return {"success": True, "data": datasource}

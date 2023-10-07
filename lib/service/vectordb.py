@@ -35,23 +35,27 @@ class PineconeVectorService(VectorDBService):
             )
         self.index = pinecone.Index(index_name=self.index_name)
 
-    def __del__(self):
-        pinecone.deinit()
-
-    def upsert(self, vectors: ndarray):
+    async def upsert(self, vectors: ndarray):
         self.index.upsert(vectors=vectors, namespace=self.namespace)
 
-    def query(self, queries: List[ndarray], top_k: int):
-        return self.index.query(queries=queries, top_k=top_k)
+    async def query(
+        self, queries: List[ndarray], top_k: int, include_metadata: bool = True
+    ):
+        return self.index.query(
+            queries=queries,
+            top_k=top_k,
+            include_metadata=include_metadata,
+            namespace=self.namespace,
+        )
 
 
-def get_vector_service(
+async def get_vector_service(
     provider: str, index_name: str, namespace: str = None, dimension: int = 384
 ):
     services = {
         "pinecone": PineconeVectorService,
         # Add other providers here
-        # "weaviate": WeaviateVectorService,
+        # e.g "weaviate": WeaviateVectorService,
     }
     service = services.get(provider)
     if service is None:
