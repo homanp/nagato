@@ -23,11 +23,13 @@ enum DatasourceStatus {
 }
 
 model Datasource {
-    id        String           @id @default(uuid())
-    content   String?          @db.Text()
-    status    DatasourceStatus @default(IN_PROGRESS)
-    type      DatasourceType
-    url       String?
-    createdAt DateTime         @default(now())
-    updatedAt DateTime         @updatedAt
+    id          String           @id @default(uuid())
+    content     String?          @db.Text()
+    status      DatasourceStatus @default(IN_PROGRESS)
+    type        DatasourceType
+    url         String?
+    finetune    Json?
+    webhook_url String?
+    createdAt   DateTime         @default(now())
+    updatedAt   DateTime         @updatedAt
 }

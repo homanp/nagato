@@ -1,9 +1,10 @@
-import json
+import os
+import uuid
 import openai
 import asyncio
 
 from abc import ABC, abstractmethod
-from typing import List, Union, Tuple
+from typing import Dict, List, Union, Tuple
 from numpy import ndarray
 from decouple import config
 from llama_index import Document
@@ -19,6 +20,14 @@ class FinetuningService(ABC):
     @abstractmethod
     async def generate_dataset(self) -> List[Tuple[str, ndarray]]:
         pass
+
+    @abstractmethod
+    async def finetune(self, training_file: str) -> Dict:
+        pass
+
+    @abstractmethod
+    async def cleanup(self, training_file: str) -> None:
+        os.remove(training_file)
 
 
 class OpenAIFinetuningService(FinetuningService):
@@ -39,12 +48,13 @@ class OpenAIFinetuningService(FinetuningService):
         completion = await openai.ChatCompletion.acreate(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.3,
+            temperature=0,
         )
         return completion.choices[0].message.content
 
-    async def generate_dataset(self):
-        with open("dataset.jsonl", "w") as f:
+    async def generate_dataset(self) -> str:
+        training_file = f"{uuid.uuid4()}.jsonl"
+        with open(training_file, "w") as f:
             for i in range(
                 0, len(self.nodes), self.batch_size
             ):  # Process nodes in chunks of batch_size
@@ -57,6 +67,13 @@ class OpenAIFinetuningService(FinetuningService):
                     json_objects = qa_pair.split("\n\n")
                     for json_obj in json_objects:
                         f.write(json_obj + "\n")
+
+    async def finetune(self, training_file: str) -> Dict:
+        file = openai.File.create(file=open(training_file, "rb"), purpose="fine-tune")
+        finetune = await openai.FineTuningJob.acreate(
+            training_file=file.get("id"), model="gpt-3.5-turbo"
+        )
+        return {**finetune, "training_file": training_file}
 
 
 async def get_finetuning_service(
