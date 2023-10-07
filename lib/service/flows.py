@@ -1,13 +1,13 @@
-import openai
-
 from typing import List, Union
+
+import openai
 from llama_index import Document
-from prisma.models import Datasource
 from prefect import flow, task
-from lib.models.ingest import IngestRequest
+
 from lib.service.embedding import EmbeddingService
 from lib.service.finetune import get_finetuning_service
 from lib.utils.prisma import prisma
+from prisma.models import Datasource
 
 
 @task

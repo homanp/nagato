@@ -1,7 +1,7 @@
 from fastapi import APIRouter
+from service.flows import create_embeddings, create_finetune
 
 from lib.models.ingest import IngestRequest
-from service.flows import create_finetune, create_embeddings
 from lib.utils.prisma import prisma
 
 router = APIRouter()
