@@ -1,14 +1,15 @@
+import asyncio
 import os
 import uuid
-import openai
-import asyncio
-
 from abc import ABC, abstractmethod
-from typing import Dict, List, Union, Tuple
-from numpy import ndarray
+from typing import Dict, List, Tuple, Union
+
+import openai
 from decouple import config
 from llama_index import Document
-from lib.service.prompts import generate_qa_pair_prompt, GPT_DATA_FORMAT
+from numpy import ndarray
+
+from lib.service.prompts import GPT_DATA_FORMAT, generate_qa_pair_prompt
 
 openai.api_key = config("OPENAI_API_KEY")
 

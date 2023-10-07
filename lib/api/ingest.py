@@ -1,11 +1,10 @@
 import openai
-
 from fastapi import APIRouter
 
+from lib.models.ingest import IngestRequest
 from lib.service.embedding import EmbeddingService
 from lib.service.finetune import get_finetuning_service
 from lib.utils.prisma import prisma
-from lib.models.ingest import IngestRequest
 
 router = APIRouter()
 

@@ -1,3 +1,5 @@
+# flake8: noqa
+
 GPT_DATA_FORMAT = (
     "{"
     '"messages": ['
