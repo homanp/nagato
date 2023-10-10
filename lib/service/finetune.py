@@ -26,7 +26,6 @@ class FinetuningService(ABC):
     async def finetune(self, training_file: str) -> Dict:
         pass
 
-    @abstractmethod
     async def cleanup(self, training_file: str) -> None:
         os.remove(training_file)
 
@@ -68,6 +67,7 @@ class OpenAIFinetuningService(FinetuningService):
                     json_objects = qa_pair.split("\n\n")
                     for json_obj in json_objects:
                         f.write(json_obj + "\n")
+        return training_file
 
     async def finetune(self, training_file: str) -> Dict:
         file = openai.File.create(file=open(training_file, "rb"), purpose="fine-tune")

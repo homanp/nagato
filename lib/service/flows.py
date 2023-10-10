@@ -29,9 +29,9 @@ async def create_finetuned_model(datasource: Datasource):
     finetunning_service = await get_finetuning_service(
         nodes=nodes, provider="openai", batch_size=5
     )
-    await finetunning_service.generate_dataset()
-    finetune_job = await finetunning_service.finetune()
-    finetune = await openai.FineTune.retrieve(id=finetune_job.id)
+    training_file = await finetunning_service.generate_dataset()
+    finetune_job = await finetunning_service.finetune(training_file=training_file)
+    finetune = await openai.FineTune.retrieve(id=finetune_job.get("id"))
     await finetunning_service.cleanup(training_file=finetune_job.get("training_file"))
     return finetune
 
