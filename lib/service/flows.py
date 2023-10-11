@@ -1,3 +1,4 @@
+import json
 from typing import List, Union
 
 import openai
@@ -27,24 +28,27 @@ async def create_finetuned_model(datasource: Datasource):
     documents = await embedding_service.generate_documents()
     nodes = await embedding_service.generate_chunks(documents=documents)
     finetunning_service = await get_finetuning_service(
-        nodes=nodes, provider="openai", batch_size=5
+        nodes=nodes,
+        provider=datasource.provider,
+        batch_size=5,
+        base_model=datasource.base_model,
     )
-    await finetunning_service.generate_dataset()
-    finetune_job = await finetunning_service.finetune()
-    finetune = await openai.FineTune.retrieve(id=finetune_job.id)
-    await finetunning_service.cleanup(training_file=finetune_job.get("training_file"))
+    training_file = await finetunning_service.generate_dataset()
+    formatted_training_file = await finetunning_service.validate_dataset(
+        training_file=training_file
+    )
+    finetune = await finetunning_service.finetune(training_file=formatted_training_file)
+    if datasource.provider == "OPENAI":
+        finetune = await openai.FineTune.retrieve(id=finetune.get("id"))
+    await finetunning_service.cleanup(training_file=finetune.get("training_file"))
     return finetune
-
-
-@flow(name="create_embeddings", description="Create embeddings", retries=0)
-async def create_embeddings(datasource: Datasource):
-    await create_vector_embeddings(datasource=datasource)
 
 
 @flow(name="create_finetune", description="Create a finetune", retries=0)
 async def create_finetune(datasource: Datasource):
+    await create_vector_embeddings(datasource=datasource)
     finetune = await create_finetuned_model(datasource=datasource)
     await prisma.datasource.update(
         where={"id": datasource.id},
-        data={"finetune": finetune},
+        data={"finetune": json.dumps(finetune)},
     )

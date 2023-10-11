@@ -16,6 +16,23 @@ enum DatasourceType {
     MARKDOWN
 }
 
+enum BaseModelType {
+    GPT_35_TURBO
+    LLAMA2_7B
+    LLAMA2_7B_CHAT
+    LLAMA2_13B
+    LLAMA2_13B_CHAT
+    LLAMA2_70B
+    LLAMA2_70B_CHAT
+    GPT_J_6B
+    DOLLY_V2_12B
+}
+
+enum ModelProviders {
+    OPENAI
+    REPLICATE
+}
+
 enum DatasourceStatus {
     IN_PROGRESS
     DONE
@@ -24,6 +41,8 @@ enum DatasourceStatus {
 
 model Datasource {
     id          String           @id @default(uuid())
+    base_model  String           @default("GPT_35_TURBO")
+    provider    String           @default("OPENAI")
     content     String?          @db.Text()
     status      DatasourceStatus @default(IN_PROGRESS)
     type        DatasourceType

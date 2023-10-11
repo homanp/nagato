@@ -29,6 +29,7 @@ llama-index = "^0.8.37"
 pypdf = "^3.16.2"
 tiktoken = "^0.5.1"
 sentence-transformers = "^2.2.2"
+replicate = "^0.15.4"
 
 [build-system]
 requires = ["poetry-core"]

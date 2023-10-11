@@ -47,7 +47,7 @@ class EmbeddingService:
     async def generate_embeddings(
         self, nodes: List[Union[Document, None]]
     ) -> List[ndarray]:
-        vectordb = get_vector_service(
+        vectordb = await get_vector_service(
             provider="pinecone",
             index_name="all-minilm-l6-v2",
             namespace=self.datasource.id,
