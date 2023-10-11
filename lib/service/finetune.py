@@ -111,7 +111,7 @@ class ReplicateFinetuningService(FinetuningService):
     def __init__(
         self,
         nodes: List[Union[Document, None]],
-        num_questions_per_chunk: int = 10,
+        num_questions_per_chunk: int = 1,
         batch_size: int = 10,
         base_model: str = "LLAMA2_7B_CHAT",
     ):
@@ -169,6 +169,7 @@ class ReplicateFinetuningService(FinetuningService):
                 "num_train_epochs": 6,
             },
             destination="homanp/test",
+            webhook="https://api.nagato.sh/api/v1/webhook/finetune",
         )
         return {"id": training.id, "training_file": training_file}
 
