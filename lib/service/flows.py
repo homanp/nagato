@@ -1,4 +1,3 @@
-import json
 from typing import List, Union
 
 import openai
@@ -8,6 +7,7 @@ from prefect import flow, task
 from lib.service.embedding import EmbeddingService
 from lib.service.finetune import get_finetuning_service
 from lib.utils.prisma import prisma
+from prisma import Json
 from prisma.models import Datasource
 
 
@@ -48,7 +48,8 @@ async def create_finetuned_model(datasource: Datasource):
 async def create_finetune(datasource: Datasource):
     await create_vector_embeddings(datasource=datasource)
     finetune = await create_finetuned_model(datasource=datasource)
+    print(finetune)
     await prisma.datasource.update(
         where={"id": datasource.id},
-        data={"finetune": json.dumps(finetune)},
+        data={"finetune": Json(data=finetune)},
     )
