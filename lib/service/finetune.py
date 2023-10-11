@@ -1,13 +1,15 @@
+# flake8: noqa
+
 import asyncio
-import httpx
+import json
 import os
 import uuid
-import openai
-import replicate
-import json
-
 from abc import ABC, abstractmethod
 from typing import Dict, List, Union
+
+import httpx
+import openai
+import replicate
 from decouple import config
 from llama_index import Document
 
@@ -109,7 +111,7 @@ class ReplicateFinetuningService(FinetuningService):
     def __init__(
         self,
         nodes: List[Union[Document, None]],
-        num_questions_per_chunk: int = 1,
+        num_questions_per_chunk: int = 10,
         batch_size: int = 10,
         base_model: str = "LLAMA2_7B_CHAT",
     ):
@@ -164,7 +166,7 @@ class ReplicateFinetuningService(FinetuningService):
             version=REPLICATE_MODELS[self.base_model],
             input={
                 "train_data": training_file_url,
-                "num_train_epochs": 3,
+                "num_train_epochs": 6,
             },
             destination="homanp/test",
         )
@@ -212,5 +214,4 @@ async def upload_replicate_dataset(training_file: str) -> str:
             )
 
         serving_url = response_data["serving_url"]
-        print(serving_url)
         return serving_url

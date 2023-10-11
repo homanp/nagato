@@ -1,7 +1,7 @@
-import openai
 import json
-
 from typing import List, Union
+
+import openai
 from llama_index import Document
 from prefect import flow, task
 
