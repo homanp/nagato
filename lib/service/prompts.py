@@ -5,8 +5,15 @@ GPT_DATA_FORMAT = (
     '"messages": ['
     '{"role": "system", "content": "You are an AI agent that\'s an expert at answering questions."}, '
     '{"role": "user", "content": "What\'s the capital of France?"}, '
-    '{"role": "assistant", "content": "Paris, as if everyone doesn\'t know that already."}'
+    '{"role": "assistant", "content": "Paris, is the capital of France."}'
     "]"
+    "}"
+)
+
+REPLICATE_FORMAT = (
+    "{"
+    '"prompt": "What\'s the capital of France?",'
+    '"completion": "Paris, is the capital of France"'
     "}"
 )
 
