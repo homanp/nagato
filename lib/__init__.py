@@ -5,7 +5,7 @@ from lib.service.flows import create_finetune
 
 
 async def ingest(payload: IngestRequest):
-    """Endpoint for ingesting data"""
+    """Ingest data into pipeline"""
 
     async def run_training_flow():
         try:
