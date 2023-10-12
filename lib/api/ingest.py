@@ -4,7 +4,6 @@ from fastapi import APIRouter
 
 from lib.models.ingest import IngestRequest
 from lib.service.flows import create_finetune
-from prisma.models import Datasource
 
 router = APIRouter()
 

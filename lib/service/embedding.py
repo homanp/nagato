@@ -8,8 +8,8 @@ from llama_index.node_parser import SimpleNodeParser
 from numpy import ndarray
 from sentence_transformers import SentenceTransformer
 
-from lib.service.vectordb import get_vector_service
 from lib.models.ingest import IngestRequest
+from lib.service.vectordb import get_vector_service
 
 
 class EmbeddingService:
