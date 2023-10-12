@@ -8,3 +8,4 @@ superenv/
 venv/
 /.vscode
 /.codesandbox
+.pypirc
