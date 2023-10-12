@@ -8,18 +8,13 @@ from lib.service.flows import create_finetune
 router = APIRouter()
 
 
-@router.post(
-    "/ingest",
-    name="ingest",
-    description="Ingest data",
-)
-async def ingest(body: IngestRequest):
+async def ingest(payload: IngestRequest):
     """Endpoint for ingesting data"""
 
     async def run_training_flow():
         try:
             await create_finetune(
-                payload=body,
+                payload=payload,
             )
         except Exception as flow_exception:
             raise flow_exception
