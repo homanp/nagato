@@ -9,17 +9,17 @@ from numpy import ndarray
 from sentence_transformers import SentenceTransformer
 
 from lib.service.vectordb import get_vector_service
-from prisma.models import Datasource
+from lib.models.ingest import IngestRequest
 
 
 class EmbeddingService:
-    def __init__(self, datasource: Datasource):
-        self.datasource = datasource
+    def __init__(self, payload: IngestRequest):
+        self.payload = payload
 
     def get_datasource_suffix(self) -> str:
         suffixes = {"TXT": ".txt", "PDF": ".pdf", "MARKDOWN": ".md"}
         try:
-            return suffixes[self.datasource.type]
+            return suffixes[self.payload.type]
         except KeyError:
             raise ValueError("Unsupported datasource type")
 
@@ -27,10 +27,10 @@ class EmbeddingService:
         with NamedTemporaryFile(
             suffix=self.get_datasource_suffix(), delete=True
         ) as temp_file:
-            if self.datasource.url:
-                content = requests.get(self.datasource.url).content
+            if self.payload.url:
+                content = requests.get(self.payload.url).content
             else:
-                content = self.datasource.content
+                content = self.payload.content
             temp_file.write(content)
             temp_file.flush()
             reader = SimpleDirectoryReader(input_files=[temp_file.name])
@@ -45,12 +45,14 @@ class EmbeddingService:
         return nodes
 
     async def generate_embeddings(
-        self, nodes: List[Union[Document, None]]
+        self,
+        nodes: List[Union[Document, None]],
+        finetune_id: str,
     ) -> List[ndarray]:
         vectordb = await get_vector_service(
             provider="pinecone",
             index_name="all-minilm-l6-v2",
-            namespace=self.datasource.id,
+            namespace=finetune_id,
             dimension=384,
         )
         model = SentenceTransformer(

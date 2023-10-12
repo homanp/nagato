@@ -1995,20 +1995,6 @@ tgrep = ["pyparsing"]
 twitter = ["twython"]
 
 [[package]]
-name = "nodeenv"
-version = "1.8.0"
-description = "Node.js virtual environment builder"
-optional = false
-python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*"
-files = [
-    {file = "nodeenv-1.8.0-py2.py3-none-any.whl", hash = "sha256:df865724bb3c3adc86b3876fa209771517b0cfe596beff01a92700e0e8be4cec"},
-    {file = "nodeenv-1.8.0.tar.gz", hash = "sha256:d51e0c37e64fbf47d017feac3145cdbb58836d7eee8c6f6d3b6880c5456227d2"},
-]
-
-[package.dependencies]
-setuptools = "*"
-
-[[package]]
 name = "numexpr"
 version = "2.8.7"
 description = "Fast numerical expression evaluator for NumPy"
@@ -2533,31 +2519,6 @@ websockets = ">=10.4"
 
 [package.extras]
 dev = ["cairosvg", "flaky", "ipython", "ipython (==8.12.*)", "jinja2", "mike", "mkdocs", "mkdocs-gen-files", "mkdocs-material", "mkdocstrings-python", "mock", "moto", "mypy", "numpy", "pillow", "pre-commit", "pytest (>7)", "pytest-asyncio (>=0.18.2)", "pytest-benchmark", "pytest-cov", "pytest-env", "pytest-flakefinder", "pytest-timeout", "pytest-xdist", "pytkdocs (>=0.14.2)", "pyyaml", "requests", "respx", "ruff", "setuptools (!=60.9.0)", "virtualenv", "watchfiles"]
-
-[[package]]
-name = "prisma"
-version = "0.9.1"
-description = "Prisma Client Python is an auto-generated and fully type-safe database client"
-optional = false
-python-versions = ">=3.7.0"
-files = [
-    {file = "prisma-0.9.1-py3-none-any.whl", hash = "sha256:a59447cee28cb04a6c480f875d50bb1a1c1661013a81d3145114d39fd53a806c"},
-    {file = "prisma-0.9.1.tar.gz", hash = "sha256:c8a58845833890da931f0d04719ae6506dc86f018b46bb3084402d0d38af8e23"},
-]
-
-[package.dependencies]
-click = ">=7.1.2"
-httpx = ">=0.19.0"
-jinja2 = ">=2.11.2"
-nodeenv = "*"
-pydantic = ">=1.8.0,<2.0.0"
-python-dotenv = ">=0.12.0"
-tomlkit = "*"
-typing-extensions = ">=4.0.1"
-
-[package.extras]
-all = ["nodejs-bin"]
-node = ["nodejs-bin"]
 
 [[package]]
 name = "pyasn1"
@@ -3885,17 +3846,6 @@ files = [
 ]
 
 [[package]]
-name = "tomlkit"
-version = "0.12.1"
-description = "Style preserving TOML library"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "tomlkit-0.12.1-py3-none-any.whl", hash = "sha256:712cbd236609acc6a3e2e97253dfc52d4c2082982a88f61b640ecf0817eab899"},
-    {file = "tomlkit-0.12.1.tar.gz", hash = "sha256:38e1ff8edb991273ec9f6181244a6a391ac30e9f5098e7535640ea6be97a7c86"},
-]
-
-[[package]]
 name = "torch"
 version = "2.0.1"
 description = "Tensors and Dynamic neural networks in Python with strong GPU acceleration"
@@ -4748,4 +4698,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "9201706ae52ca01c96b099e04d699ffd06e43de885386c6632ab24dcc8525e46"
+content-hash = "1b24fe0d6e365aab0faca09d00a00f27db7e524f9e988cd16cb885dabe156394"

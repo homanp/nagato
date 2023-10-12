@@ -6,7 +6,6 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from lib.routers import router
-from lib.utils.prisma import prisma
 
 # Create a color formatter
 formatter = colorlog.ColoredFormatter(
@@ -54,16 +53,6 @@ async def add_process_time_header(request: Request, call_next):
     process_time = time.time() - start_time
     print(f"Total request time: {process_time} secs")
     return response
-
-
-@app.on_event("startup")
-async def startup():
-    await prisma.connect()
-
-
-@app.on_event("shutdown")
-async def shutdown():
-    await prisma.disconnect()
 
 
 app.include_router(router)
