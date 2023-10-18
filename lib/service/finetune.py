@@ -1,15 +1,20 @@
 # flake8: noqa
 
-import asyncio
+import requests
 import json
 import os
 import uuid
-from abc import ABC, abstractmethod
-from typing import Dict, List, Union
-
-import httpx
 import openai
 import replicate
+import concurrent.futures
+
+from tqdm import tqdm
+from decouple import config
+from abc import ABC, abstractmethod
+from typing import Dict, List, Union
+from concurrent.futures import ThreadPoolExecutor
+
+from lib.utils.logger import logger
 from decouple import config
 from llama_index import Document
 
@@ -20,6 +25,7 @@ from lib.service.prompts import (
 )
 
 openai.api_key = config("OPENAI_API_KEY")
+
 
 REPLICATE_MODELS = {
     "LLAMA2_7B_CHAT": "meta/llama-2-7b-chat:8e6975e5ed6174911a6ff3d60540dfd4844201974602551e10e9e87ab143d81e",
@@ -36,22 +42,54 @@ OPENAI_MODELS = {"GPT_35_TURBO": "gpt-3.5-turbo"}
 
 
 class FinetuningService(ABC):
-    def __init__(self, nodes: List[Union[Document, None]]):
+    def __init__(
+        self,
+        nodes: List[Union[Document, None]],
+        num_questions_per_chunk: int,
+        batch_size: int,
+    ):
         self.nodes = nodes
+        self.num_questions_per_chunk = num_questions_per_chunk
+        self.batch_size = batch_size
 
     @abstractmethod
-    async def generate_dataset(self) -> str:
+    def generate_prompt_and_completion(self, node):
         pass
 
     @abstractmethod
-    async def validate_dataset(self, training_file: str) -> str:
+    def validate_dataset(self, training_file: str) -> str:
         pass
 
     @abstractmethod
-    async def finetune(self, training_file: str, base_model: str) -> Dict:
+    def finetune(self, training_file: str, base_model: str) -> Dict:
         pass
 
-    async def cleanup(self, training_file: str) -> None:
+    def generate_dataset(self) -> str:
+        training_file = f"{uuid.uuid4()}.jsonl"
+        total_pairs = len(self.nodes) * self.num_questions_per_chunk
+        with open(training_file, "w") as f:
+            with ThreadPoolExecutor() as executor:
+                progress_bar = tqdm(
+                    total=total_pairs, desc="Generating synthetic Q&A pairs"
+                )
+                for i in range(
+                    0, len(self.nodes), self.batch_size
+                ):  # Process nodes in chunks of batch_size
+                    batch_nodes = self.nodes[i : i + self.batch_size]
+                    tasks = [
+                        executor.submit(self.generate_prompt_and_completion, node)
+                        for node in batch_nodes
+                    ]
+                    for future in concurrent.futures.as_completed(tasks):
+                        qa_pair = future.result()
+                        json_objects = qa_pair.split("\n\n")
+                        for json_obj in json_objects:
+                            f.write(json_obj + "\n")
+                            progress_bar.update(1)
+                progress_bar.close()
+        return training_file
+
+    def cleanup(self, training_file: str) -> None:
         os.remove(training_file)
 
 
@@ -59,49 +97,34 @@ class OpenAIFinetuningService(FinetuningService):
     def __init__(
         self,
         nodes: List[Union[Document, None]],
-        num_questions_per_chunk: int = 10,
-        batch_size: int = 10,
+        num_questions_per_chunk: int,
+        batch_size: int,
         base_model: str = "GPT_35_TURBO",
     ):
-        super().__init__(nodes=nodes)
-        self.num_questions_per_chunk = num_questions_per_chunk
-        self.batch_size = batch_size
+        super().__init__(
+            nodes=nodes,
+            num_questions_per_chunk=num_questions_per_chunk,
+            batch_size=batch_size,
+        )
         self.base_model = base_model
 
-    async def generate_prompt_and_completion(self, node):
+    def generate_prompt_and_completion(self, node):
         prompt = generate_qa_pair_prompt(
             context=node.text, num_of_qa_paris=10, format=GPT_DATA_FORMAT
         )
-        completion = await openai.ChatCompletion.acreate(
+        completion = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
             temperature=0,
         )
         return completion.choices[0].message.content
 
-    async def generate_dataset(self) -> str:
-        training_file = f"{uuid.uuid4()}.jsonl"
-        with open(training_file, "w") as f:
-            for i in range(
-                0, len(self.nodes), self.batch_size
-            ):  # Process nodes in chunks of batch_size
-                tasks = [
-                    self.generate_prompt_and_completion(node)
-                    for node in self.nodes[i : i + self.batch_size]
-                ]
-                qa_pairs = await asyncio.gather(*tasks)
-                for qa_pair in qa_pairs:
-                    json_objects = qa_pair.split("\n\n")
-                    for json_obj in json_objects:
-                        f.write(json_obj + "\n")
-        return training_file
-
-    async def validate_dataset(self, training_file: str) -> str:
+    def validate_dataset(self, training_file: str) -> str:
         pass
 
-    async def finetune(self, training_file: str) -> Dict:
+    def finetune(self, training_file: str, _webhook_url: str = None) -> Dict:
         file = openai.File.create(file=open(training_file, "rb"), purpose="fine-tune")
-        finetune = await openai.FineTuningJob.acreate(
+        finetune = openai.FineTuningJob.create(
             training_file=file.get("id"), model=OPENAI_MODELS[self.base_model]
         )
         return {**finetune, "training_file": training_file}
@@ -111,70 +134,69 @@ class ReplicateFinetuningService(FinetuningService):
     def __init__(
         self,
         nodes: List[Union[Document, None]],
-        num_questions_per_chunk: int = 1,
-        batch_size: int = 10,
+        num_questions_per_chunk: int,
+        batch_size: int,
         base_model: str = "LLAMA2_7B_CHAT",
     ):
-        super().__init__(nodes=nodes)
-        self.num_questions_per_chunk = num_questions_per_chunk
-        self.batch_size = batch_size
+        super().__init__(
+            nodes=nodes,
+            num_questions_per_chunk=num_questions_per_chunk,
+            batch_size=batch_size,
+        )
         self.base_model = base_model
 
-    async def generate_prompt_and_completion(self, node):
+    def generate_prompt_and_completion(self, node):
         prompt = generate_qa_pair_prompt(
-            context=node.text, num_of_qa_paris=10, format=REPLICATE_FORMAT
+            context=node.text,
+            num_of_qa_pairs=self.num_questions_per_chunk,
+            format=REPLICATE_FORMAT,
         )
-        completion = await openai.ChatCompletion.acreate(
+        completion = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
             temperature=0,
         )
         return completion.choices[0].message.content
 
-    async def generate_dataset(self) -> str:
-        training_file = f"{uuid.uuid4()}.jsonl"
-        with open(training_file, "w") as f:
-            for i in range(
-                0, len(self.nodes), self.batch_size
-            ):  # Process nodes in chunks of batch_size
-                tasks = [
-                    self.generate_prompt_and_completion(node)
-                    for node in self.nodes[i : i + self.batch_size]
-                ]
-                qa_pairs = await asyncio.gather(*tasks)
-                for qa_pair in qa_pairs:
-                    json_objects = qa_pair.split("\n\n")
-                    for json_obj in json_objects:
-                        f.write(json_obj + "\n")
-        return training_file
-
-    async def validate_dataset(self, training_file: str) -> str:
+    def validate_dataset(self, training_file: str) -> str:
         valid_data = []
         with open(training_file, "r") as f:
-            for line in f:
-                data = json.loads(line)
-                if "prompt" in data and "completion" in data:
-                    valid_data.append(data)
+            lines = f.readlines()
+            total_lines = len(lines)
+            progress_bar = tqdm(total=total_lines, desc="Validating lines")
+            for i, line in enumerate(lines, start=1):
+                try:
+                    data = json.loads(line)
+                    if "prompt" in data and "completion" in data:
+                        valid_data.append(data)
+                except json.JSONDecodeError:
+                    pass
+                progress_bar.update(1)
+            progress_bar.close()
+
         with open(training_file, "w") as f:
             for data in valid_data:
                 f.write(json.dumps(data) + "\n")
+
         return training_file
 
-    async def finetune(self, training_file: str) -> Dict:
-        training_file_url = await upload_replicate_dataset(training_file=training_file)
-        training = replicate.trainings.create(
+    def finetune(self, training_file: str, webhook_url: str = None) -> Dict:
+        training_file_url = upload_replicate_dataset(training_file=training_file)
+        training = replicate.Client(
+            api_token=config("REPLICATE_API_KEY")
+        ).trainings.create(
             version=REPLICATE_MODELS[self.base_model],
             input={
                 "train_data": training_file_url,
                 "num_train_epochs": 6,
             },
             destination="homanp/test",
-            webhook="https://api.nagato.sh/api/v1/webhook/finetune",
+            webhook=webhook_url,
         )
         return {"id": training.id, "training_file": training_file}
 
 
-async def get_finetuning_service(
+def get_finetuning_service(
     nodes: List[Union[Document, None]],
     provider: str = "openai",
     base_model: str = "GPT_35_TURBO",
@@ -197,22 +219,21 @@ async def get_finetuning_service(
     )
 
 
-async def upload_replicate_dataset(training_file: str) -> str:
-    headers = {"Authorization": f"Token {config('REPLICATE_API_TOKEN')}"}
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            "https://dreambooth-api-experimental.replicate.com/v1/upload/data.jsonl",
-            headers=headers,
+def upload_replicate_dataset(training_file: str) -> str:
+    headers = {"Authorization": f"Token {config('REPLICATE_API_KEY')}"}
+    upload_response = requests.post(
+        "https://dreambooth-api-experimental.replicate.com/v1/upload/data.jsonl",
+        headers=headers,
+    )
+    upload_response_data = upload_response.json()
+    upload_url = upload_response_data["upload_url"]
+
+    with open(training_file, "rb") as f:
+        requests.put(
+            upload_url,
+            headers={"Content-Type": "application/jsonl"},
+            data=f.read(),
         )
-        response_data = response.json()
-        upload_url = response_data["upload_url"]
 
-        with open(training_file, "rb") as f:
-            await client.put(
-                upload_url,
-                headers={"Content-Type": "application/jsonl"},
-                content=f.read(),
-            )
-
-        serving_url = response_data["serving_url"]
-        return serving_url
+    serving_url = upload_response_data["serving_url"]
+    return serving_url

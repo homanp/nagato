@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "nagato"
-version = "0.0.1"
+name = "nagato-ai"
+version = "0.0.5"
 description = ""
 authors = ["Ismail Pelaseyed"]
 readme = "./README.md"
@@ -8,28 +8,27 @@ packages = [{include = "lib"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-fastapi = {extras = ["all"], version = "^0.95.1"}
-uvicorn = {extras = ["standard"], version = "^0.22.0"}
-gunicorn = "^20.1.0"
 python-decouple = "^3.8"
 pydantic = "^1.10.7"
-sse-starlette = "^1.5.0"
 flake8 = "^6.0.0"
 ruff = "^0.0.265"
 black = "^23.3.0"
-prefect = "^2.11.4"
 pinecone-client = "^2.2.2"
 unstructured = "^0.10.16"
 requests = "^2.31.0"
 colorlog = "^6.7.0"
 vulture = "^2.7"
-prisma = "^0.9.1"
 asyncio = "^3.4.3"
 llama-index = "^0.8.37"
 pypdf = "^3.16.2"
 tiktoken = "^0.5.1"
 sentence-transformers = "^2.2.2"
 replicate = "^0.15.4"
+wheel = "^0.41.0"
+python-dotenv = "^1.0.0"
+prefect = "^2.13.7"
+tqdm = "^4.66.1"
+decouple = "^0.0.7"
 
 [build-system]
 requires = ["poetry-core"]

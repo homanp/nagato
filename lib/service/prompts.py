@@ -18,11 +18,11 @@ REPLICATE_FORMAT = (
 )
 
 
-def generate_qa_pair_prompt(format: str, context: str, num_of_qa_paris: int = 10):
+def generate_qa_pair_prompt(format: str, context: str, num_of_qa_pairs: int = 10):
     prompt = (
         "You are an AI assistant tasked with generating question and answer pairs"
         "for the given context using the given format. Only answer in the format with"
-        f"no other text. You should create the following number of question/answer pairs: {num_of_qa_paris}"
+        f"no other text. You should create the following number of question/answer pairs: {num_of_qa_pairs}"
         "Return the question/answer pairs as a JSONL."
         "Each dict in the list should have the full context provided,"
         "a relevant question to the context and an answer to the question.\n\n"
