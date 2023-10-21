@@ -1,10 +1,10 @@
 [tool.poetry]
 name = "nagato-ai"
-version = "0.0.5"
+version = "0.0.8"
 description = ""
 authors = ["Ismail Pelaseyed"]
 readme = "./README.md"
-packages = [{include = "lib"}]
+packages = [{include = "nagato"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -26,7 +26,6 @@ sentence-transformers = "^2.2.2"
 replicate = "^0.15.4"
 wheel = "^0.41.0"
 python-dotenv = "^1.0.0"
-prefect = "^2.13.7"
 tqdm = "^4.66.1"
 decouple = "^0.0.7"
 

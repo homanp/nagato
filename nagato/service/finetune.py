@@ -14,11 +14,11 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Union
 from concurrent.futures import ThreadPoolExecutor
 
-from lib.utils.logger import logger
+from nagato.utils.logger import logger
 from decouple import config
 from llama_index import Document
 
-from lib.service.prompts import (
+from nagato.service.prompts import (
     GPT_DATA_FORMAT,
     REPLICATE_FORMAT,
     generate_qa_pair_prompt,

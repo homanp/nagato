@@ -3,8 +3,8 @@ from typing import List, Union
 import openai
 from llama_index import Document
 
-from lib.service.embedding import EmbeddingService
-from lib.service.finetune import get_finetuning_service
+from nagato.service.embedding import EmbeddingService
+from nagato.service.finetune import get_finetuning_service
 
 
 def create_vector_embeddings(

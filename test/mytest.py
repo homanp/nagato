@@ -1,4 +1,4 @@
-from lib.service import create_finetuned_model
+from nagato.service import create_finetuned_model
 
 
 # Define a function that calls the ingest function
