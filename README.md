@@ -26,6 +26,47 @@
 
 -----
 
+## Quick Start Quide
+Full documentation of all methods in the `nagato` library will be posted soon.
+
+1. Change the name of `.env-example` to `.env` and populate the environment variables
+
+2. Install the `nagato-ai` package using either PIP or Poetry:
+  
+  - For PIP:
+  ```sh
+  pip install nagato-ai 
+  ```
+  - For Poetry:
+  ```sh
+  poetry add nagato-ai
+  ```
+
+3. Create and store embeddings
+  ```sh
+  from nagato import create_vector_embeddings
+
+  results = create_vector_embeddings(
+    type: "PDF",
+    filter_id: "MY_DOCUMENT_ID", 
+    url: "https://digitalassets.tesla.com/tesla-contents/image/upload/IR/TSLA-Q2-2023-Update.pdf", 
+  )
+
+  ```
+
+3. Create fine-tuned model
+  ```sh
+  from nagato import create_finetuned_model
+
+  results = create_finetuned_model(
+    url="https://digitalassets.tesla.com/tesla-contents/image/upload/IR/TSLA-Q2-2023-Update.pdf",
+    type="PDF",
+    base_model="LLAMA2_7B_CHAT",
+    provider="REPLICATE",
+    webhook_url="https://webhook.site/ebe803b9-1e34-4b20-a6ca-d06356961cd1",
+  )
+  ```
+
 ## Features
 
 - Data ingestion from various formats such as JSON, CSV, TXT, PDF, etc.
@@ -63,3 +104,19 @@ Nagato utilizes distinct strategies to process structured and unstructured data,
 1. **Sandboxed REPL**: Nagato features a secure, sandboxed Read-Eval-Print Loop (REPL) environment to execute code snippets against the structured text data. This facilitates flexible and dynamic processing of structured data formats like JSON, CSV or XML.
 
 2. **Evaluation/Prediction Using a Code Interpreter**: Post-initial processing, a code interpreter evaluates various code snippets within the sandboxed environment to produce predictions or analyses based on the structured text data. This capability allows the extraction of highly specialized insights tailored to the domain or subject matter.
+
+
+## Citation
+
+If you use Nagato in your research, please cite it as follows:
+
+\`\`\`
+@misc{nagato,
+  author = {Ismail Pelaseyed},
+  title = {Nagato: The open framework for Q&A finetuning LLMs on private data},
+  year = {2023},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/homanp/nagato}},
+}
+\`\`\`
