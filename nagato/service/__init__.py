@@ -8,12 +8,12 @@ from nagato.service.finetune import get_finetuning_service
 
 
 def create_vector_embeddings(
-    type: str, finetune_id: str, url: str = None, content: str = None
+    type: str, filter_id: str, url: str = None, content: str = None
 ) -> List[Union[Document, None]]:
     embedding_service = EmbeddingService(type=type, content=content, url=url)
     documents = embedding_service.generate_documents()
     nodes = embedding_service.generate_chunks(documents=documents)
-    embedding_service.generate_embeddings(nodes=nodes, finetune_id=finetune_id)
+    embedding_service.generate_embeddings(nodes=nodes, filter_id=filter_id)
     return nodes
 
 

@@ -7,6 +7,7 @@ from llama_index import Document, SimpleDirectoryReader
 from llama_index.node_parser import SimpleNodeParser
 from numpy import ndarray
 from sentence_transformers import SentenceTransformer
+from tqdm import tqdm
 
 from nagato.service.vectordb import get_vector_service
 
@@ -29,29 +30,57 @@ class EmbeddingService:
             suffix=self.get_datasource_suffix(), delete=True
         ) as temp_file:
             if self.url:
-                content = requests.get(self.url).content
+                response = requests.get(self.url, stream=True)
+                total_size_in_bytes = int(response.headers.get("content-length", 0))
+                block_size = 1024
+                progress_bar = tqdm(
+                    total=total_size_in_bytes,
+                    desc="Downloading file",
+                    unit="iB",
+                    unit_scale=True,
+                )
+                content = b""
+                for data in response.iter_content(block_size):
+                    progress_bar.update(len(data))
+                    content += data
+                progress_bar.close()
+                if total_size_in_bytes != 0 and progress_bar.n != total_size_in_bytes:
+                    print("ERROR, something went wrong")
             else:
                 content = self.content
             temp_file.write(content)
             temp_file.flush()
-            reader = SimpleDirectoryReader(input_files=[temp_file.name])
-            docs = reader.load_data()
+
+            with tqdm(total=3, desc="Processing data") as pbar:
+                pbar.update()
+                pbar.set_description("Analyzing data")
+                reader = SimpleDirectoryReader(input_files=[temp_file.name])
+                pbar.update()
+                pbar.set_description("Generating documents")
+                docs = reader.load_data()
+                pbar.update()
+                pbar.set_description("Documents generated")
+
             return docs
 
     def generate_chunks(self, documents: List[Document]) -> List[Union[Document, None]]:
         parser = SimpleNodeParser.from_defaults(chunk_size=350, chunk_overlap=20)
-        nodes = parser.get_nodes_from_documents(documents, show_progress=True)
+        with tqdm(total=2, desc="Generating chunks") as pbar:
+            pbar.update()
+            pbar.set_description("Generating nodes")
+            nodes = parser.get_nodes_from_documents(documents, show_progress=True)
+            pbar.update()
         return nodes
 
     def generate_embeddings(
         self,
         nodes: List[Union[Document, None]],
-        finetune_id: str,
+        filter_id: str,
     ) -> List[ndarray]:
         vectordb = get_vector_service(
             provider="pinecone",
             index_name="all-minilm-l6-v2",
-            namespace=finetune_id,
+            filter_id=filter_id,
             dimension=384,
         )
         model = SentenceTransformer(
