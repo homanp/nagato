@@ -1,5 +1,6 @@
 # flake8: noqa
 
+import sys
 import requests
 import json
 import os
@@ -70,7 +71,9 @@ class FinetuningService(ABC):
         with open(training_file, "w") as f:
             with ThreadPoolExecutor() as executor:
                 progress_bar = tqdm(
-                    total=total_pairs, desc="Generating synthetic Q&A pairs"
+                    total=total_pairs,
+                    desc="Generating synthetic Q&A pairs",
+                    file=sys.stdout,
                 )
                 for i in range(
                     0, len(self.nodes), self.batch_size
@@ -163,7 +166,11 @@ class ReplicateFinetuningService(FinetuningService):
         with open(training_file, "r") as f:
             lines = f.readlines()
             total_lines = len(lines)
-            progress_bar = tqdm(total=total_lines, desc="Validating lines")
+            progress_bar = tqdm(
+                total=total_lines,
+                desc="Validating lines",
+                file=sys.stdout,
+            )
             for i, line in enumerate(lines, start=1):
                 try:
                     data = json.loads(line)

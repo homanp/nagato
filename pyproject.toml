@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nagato-ai"
-version = "0.0.8"
+version = "0.0.15"
 description = ""
 authors = ["Ismail Pelaseyed"]
 readme = "./README.md"
@@ -18,7 +18,6 @@ unstructured = "^0.10.16"
 requests = "^2.31.0"
 colorlog = "^6.7.0"
 vulture = "^2.7"
-asyncio = "^3.4.3"
 llama-index = "^0.8.37"
 pypdf = "^3.16.2"
 tiktoken = "^0.5.1"
@@ -27,7 +26,7 @@ replicate = "^0.15.4"
 wheel = "^0.41.0"
 python-dotenv = "^1.0.0"
 tqdm = "^4.66.1"
-decouple = "^0.0.7"
+setuptools = "^68.2.2"
 
 [build-system]
 requires = ["poetry-core"]

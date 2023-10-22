@@ -20,7 +20,7 @@ def setup_logger():
         style="%",
     )
 
-    logger = colorlog.getLogger("example")
+    logger = colorlog.getLogger(__name__)
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
     logger.addHandler(handler)

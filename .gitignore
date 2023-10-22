@@ -9,3 +9,4 @@ venv/
 /.vscode
 /.codesandbox
 .pypirc
+dist/
