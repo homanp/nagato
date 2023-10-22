@@ -1,6 +1,6 @@
 from typing import List, Union
 
-import openai
+import requests
 from llama_index import Document
 
 from nagato.service.embedding import EmbeddingService
@@ -43,6 +43,6 @@ def create_finetuned_model(
         training_file=formatted_training_file, webhook_url=webhook_url
     )
     if provider == "OPENAI":
-        finetune = openai.FineTune.retrieve(id=finetune.get("id"))
+        requests.post(webhook_url, json=finetune)
     finetunning_service.cleanup(training_file=finetune.get("training_file"))
     return finetune

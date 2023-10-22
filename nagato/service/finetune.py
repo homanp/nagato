@@ -114,7 +114,9 @@ class OpenAIFinetuningService(FinetuningService):
 
     def generate_prompt_and_completion(self, node):
         prompt = generate_qa_pair_prompt(
-            context=node.text, num_of_qa_paris=10, format=GPT_DATA_FORMAT
+            context=node.text,
+            num_of_qa_pairs=self.num_questions_per_chunk,
+            format=GPT_DATA_FORMAT,
         )
         completion = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
@@ -124,9 +126,40 @@ class OpenAIFinetuningService(FinetuningService):
         return completion.choices[0].message.content
 
     def validate_dataset(self, training_file: str) -> str:
-        pass
+        valid_lines = []
+        with open(training_file, "r") as file:
+            lines = file.readlines()
+            total_lines = len(lines)
+            progress_bar = tqdm(
+                total=total_lines, desc="🟠 Validating dataset", file=sys.stdout
+            )
+            for line in lines:
+                try:
+                    data = json.loads(line)
+                    if "messages" not in data:
+                        continue
+                    messages = data["messages"]
+                    if len(messages) != 3:
+                        continue
+                    if not (
+                        messages[0]["role"] == "system"
+                        and messages[1]["role"] == "user"
+                        and messages[2]["role"] == "assistant"
+                    ):
+                        continue
+                    valid_lines.append(line)
+                except json.JSONDecodeError:
+                    continue
+                finally:
+                    progress_bar.update(1)
+            progress_bar.set_description("🟢 Validating dataset")
+            progress_bar.close()
 
-    def finetune(self, training_file: str, _webhook_url: str = None) -> Dict:
+        with open(training_file, "w") as file:
+            file.writelines(valid_lines)
+        return training_file
+
+    def finetune(self, training_file: str, webhook_url: str = None) -> Dict:
         file = openai.File.create(file=open(training_file, "rb"), purpose="fine-tune")
         finetune = openai.FineTuningJob.create(
             training_file=file.get("id"), model=OPENAI_MODELS[self.base_model]
@@ -169,7 +202,7 @@ class ReplicateFinetuningService(FinetuningService):
             total_lines = len(lines)
             progress_bar = tqdm(
                 total=total_lines,
-                desc="Validating lines",
+                desc="🟠 Validating training data",
                 file=sys.stdout,
             )
             for i, line in enumerate(lines, start=1):
@@ -180,6 +213,7 @@ class ReplicateFinetuningService(FinetuningService):
                 except json.JSONDecodeError:
                     pass
                 progress_bar.update(1)
+            progress_bar.set_description("🟢 Validating training data")
             progress_bar.close()
 
         with open(training_file, "w") as f:
@@ -201,6 +235,13 @@ class ReplicateFinetuningService(FinetuningService):
             destination="homanp/test",
             webhook=webhook_url,
         )
+        progress_bar = tqdm(
+            total=1,
+            desc="🟢 Started model training",
+            file=sys.stdout,
+        )
+        progress_bar.update(1)
+        progress_bar.close()
         return {"id": training.id, "training_file": training_file}
 
 
