@@ -72,7 +72,7 @@ class FinetuningService(ABC):
             with ThreadPoolExecutor() as executor:
                 progress_bar = tqdm(
                     total=total_pairs,
-                    desc="Generating synthetic Q&A pairs",
+                    desc="🟠 Generating synthetic Q&A pairs",
                     file=sys.stdout,
                 )
                 for i in range(
@@ -89,6 +89,7 @@ class FinetuningService(ABC):
                         for json_obj in json_objects:
                             f.write(json_obj + "\n")
                             progress_bar.update(1)
+                progress_bar.set_description("🟢 Generating synthetic Q&A pairs")
                 progress_bar.close()
         return training_file
 

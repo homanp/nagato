@@ -33,43 +33,42 @@ class EmbeddingService:
                 response = requests.get(self.url, stream=True)
                 total_size_in_bytes = int(response.headers.get("content-length", 0))
                 block_size = 1024
-                progress_bar = tqdm(
+                content = b""
+                with tqdm(
                     total=total_size_in_bytes,
-                    desc="Downloading file",
+                    desc="🟠 Downloading file",
                     unit="iB",
                     unit_scale=True,
-                )
-                content = b""
-                for data in response.iter_content(block_size):
-                    progress_bar.update(len(data))
-                    content += data
-                progress_bar.close()
-                if total_size_in_bytes != 0 and progress_bar.n != total_size_in_bytes:
-                    print("ERROR, something went wrong")
+                ) as progress_bar:
+                    for data in response.iter_content(block_size):
+                        progress_bar.update(len(data))
+                        content += data
+                    if (
+                        total_size_in_bytes != 0
+                        and progress_bar.n != total_size_in_bytes
+                    ):
+                        print("ERROR, something went wrong")
+                    else:
+                        progress_bar.set_description("🟢 Downloading file")
             else:
                 content = self.content
             temp_file.write(content)
             temp_file.flush()
 
-            with tqdm(total=3, desc="Processing data") as pbar:
-                pbar.update()
-                pbar.set_description("Analyzing data")
+            with tqdm(total=1, desc="🟠 Processing data") as pbar:
                 reader = SimpleDirectoryReader(input_files=[temp_file.name])
-                pbar.update()
-                pbar.set_description("Generating documents")
                 docs = reader.load_data()
                 pbar.update()
-                pbar.set_description("Documents generated")
+                pbar.set_description("🟢 Processing data")
 
             return docs
 
     def generate_chunks(self, documents: List[Document]) -> List[Union[Document, None]]:
         parser = SimpleNodeParser.from_defaults(chunk_size=350, chunk_overlap=20)
-        with tqdm(total=2, desc="Generating chunks") as pbar:
+        with tqdm(total=1, desc="🟠 Generating chunks") as pbar:
+            nodes = parser.get_nodes_from_documents(documents, show_progress=False)
             pbar.update()
-            pbar.set_description("Generating nodes")
-            nodes = parser.get_nodes_from_documents(documents, show_progress=True)
-            pbar.update()
+            pbar.set_description("🟢 Generating chunks")
         return nodes
 
     def generate_embeddings(

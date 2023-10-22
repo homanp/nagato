@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="nagato-ai",
-    version="0.0.14",
+    version="0.0.16",
     packages=["nagato"],
     description="The open framework for Q&A finetuning LLMs on private data",
     long_description=open("README.md").read(),
