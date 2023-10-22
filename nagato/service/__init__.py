@@ -1,15 +1,13 @@
-from typing import List, Union
+from typing import Callable, List
 
 import requests
-from llama_index import Document
-
-from nagato.service.embedding import EmbeddingService
-from nagato.service.finetune import get_finetuning_service
 
 
 def create_vector_embeddings(
     type: str, filter_id: str, url: str = None, content: str = None
-) -> List[Union[Document, None]]:
+) -> List:
+    from nagato.service.embedding import EmbeddingService
+
     embedding_service = EmbeddingService(type=type, content=content, url=url)
     documents = embedding_service.generate_documents()
     nodes = embedding_service.generate_chunks(documents=documents)
@@ -24,7 +22,11 @@ def create_finetuned_model(
     url: str = None,
     content: str = None,
     webhook_url: str = None,
-):
+    num_questions_per_chunk: int = 10,
+) -> dict:
+    from nagato.service.embedding import EmbeddingService
+    from nagato.service.finetune import get_finetuning_service
+
     embedding_service = EmbeddingService(type=type, url=url, content=content)
     documents = embedding_service.generate_documents()
     nodes = embedding_service.generate_chunks(documents=documents)
@@ -33,7 +35,7 @@ def create_finetuned_model(
         provider=provider,
         batch_size=5,
         base_model=base_model,
-        num_questions_per_chunk=1,
+        num_questions_per_chunk=num_questions_per_chunk,
     )
     training_file = finetunning_service.generate_dataset()
     formatted_training_file = finetunning_service.validate_dataset(
@@ -46,3 +48,15 @@ def create_finetuned_model(
         requests.post(webhook_url, json=finetune)
     finetunning_service.cleanup(training_file=finetune.get("training_file"))
     return finetune
+
+
+def predict(
+    provider: str, model: str, callback: Callable = None, enable_streaming: bool = False
+) -> dict:
+    from nagato.service.query import get_query_service
+
+    query_service = get_query_service(provider=provider, model=model)
+    output = query_service.predict(
+        input="Hello world", callback=callback, enable_streaming=enable_streaming
+    )
+    return output

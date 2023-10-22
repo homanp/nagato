@@ -17,6 +17,13 @@ REPLICATE_FORMAT = (
     "}"
 )
 
+REPLICATE_SYSTEM_PROMPT = (
+    "You are an AI Assistant that's an expert at answering questions.\n\n"
+    "If a question does not make any sense, or is not factually coherent, "
+    "explain why instead of answering something not correct.\n\n"
+    "If you don't know the answer to a question, please don't share false information."
+)
+
 
 def generate_qa_pair_prompt(format: str, context: str, num_of_qa_pairs: int = 10):
     prompt = (
