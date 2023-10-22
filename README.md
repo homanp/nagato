@@ -110,7 +110,7 @@ Nagato utilizes distinct strategies to process structured and unstructured data,
 
 If you use Nagato in your research, please cite it as follows:
 
-\`\`\`
+```
 @misc{nagato,
   author = {Ismail Pelaseyed},
   title = {Nagato: The open framework for Q&A finetuning LLMs on private data},
@@ -119,4 +119,4 @@ If you use Nagato in your research, please cite it as follows:
   journal = {GitHub repository},
   howpublished = {\url{https://github.com/homanp/nagato}},
 }
-\`\`\`
+```
