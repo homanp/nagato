@@ -4,7 +4,10 @@ from typing import Callable
 import replicate
 from decouple import config
 
-from nagato.service.prompts import REPLICATE_SYSTEM_PROMPT
+from nagato.service.prompts import (
+    REPLICATE_SYSTEM_PROMPT,
+    generate_replicaste_system_prompt,
+)
 
 
 class QueryService(ABC):
@@ -55,8 +58,26 @@ class ReplicateQueryService(QueryService):
         else:
             return "".join(item for item in output)
 
-    def predict_with_embedding(self, filter_id: str):
-        print(filter_id)
+    def predict_with_embedding(
+        self,
+        input: str,
+        context: str,
+        enable_streaming: bool = False,
+        callback: Callable = None,
+    ):
+        client = replicate.Client(api_token=config("REPLICATE_API_KEY"))
+        output = client.run(
+            self.model,
+            input={
+                "prompt": input,
+                "system_prompt": generate_replicaste_system_prompt(context=context),
+            },
+        )
+        if enable_streaming:
+            for item in output:
+                callback(item)
+        else:
+            return "".join(item for item in output)
 
 
 def get_query_service(

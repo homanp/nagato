@@ -25,6 +25,15 @@ REPLICATE_SYSTEM_PROMPT = (
 )
 
 
+def generate_replicaste_system_prompt(context: str):
+    prompt = (
+        "You are an AI Assistant that's an expert at answering questions.\n"
+        "Use the following context to answer any questions:\n\n"
+        f"Context:\n {context}\n\n"
+    )
+    return prompt
+
+
 def generate_qa_pair_prompt(format: str, context: str, num_of_qa_pairs: int = 10):
     prompt = (
         "You are an AI assistant tasked with generating question and answer pairs"

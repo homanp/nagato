@@ -52,13 +52,42 @@ def create_finetuned_model(
 
 
 def predict(
-    provider: str, model: str, callback: Callable = None, enable_streaming: bool = False
+    input: str,
+    provider: str,
+    model: str,
+    callback: Callable = None,
+    enable_streaming: bool = False,
 ) -> dict:
     from nagato.service.query import get_query_service
 
     query_service = get_query_service(provider=provider, model=model)
     output = query_service.predict(
-        input="Hello world", callback=callback, enable_streaming=enable_streaming
+        input=input, callback=callback, enable_streaming=enable_streaming
+    )
+    return output
+
+
+def predict_with_embedding(
+    input: str,
+    provider: str,
+    model: str,
+    embedding_provider: str,
+    embedding_model: str,
+    embedding_filter_id: str,
+    callback: Callable = None,
+    enable_streaming: bool = False,
+) -> dict:
+    from nagato.service.query import get_query_service
+
+    similarity_search = query_embedding(
+        query=input,
+        model=embedding_model,
+        filter_id=embedding_filter_id,
+        provider=embedding_provider,
+    )
+    query_service = get_query_service(provider=provider, model=model)
+    output = query_service.predict_with_embedding(
+        input=input, callback=callback, enable_streaming=enable_streaming
     )
     return output
 
