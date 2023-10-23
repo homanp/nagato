@@ -75,16 +75,15 @@ class EmbeddingService:
         self,
         nodes: List[Union[Document, None]],
         filter_id: str,
+        model: str = "all-MiniLM-L6-v2",
     ) -> List[ndarray]:
         vectordb = get_vector_service(
             provider="pinecone",
-            index_name="all-minilm-l6-v2",
+            index_name=model.lower(),
             filter_id=filter_id,
             dimension=384,
         )
-        model = SentenceTransformer(
-            "all-MiniLM-L6-v2", use_auth_token=config("HF_API_KEY")
-        )
+        model = SentenceTransformer(model, use_auth_token=config("HF_API_KEY"))
         embeddings = []
         for node in nodes:
             if node is not None:
@@ -96,17 +95,3 @@ class EmbeddingService:
                 embeddings.append(embedding)
         vectordb.upsert(vectors=embeddings)
         return embeddings
-
-    # def generate_query(self):
-    #    model = SentenceTransformer(
-    #        "all-MiniLM-L6-v2", use_auth_token=config("HF_API_KEY")
-    #    )
-    #    vectordb = get_vector_service(
-    #        provider="pinecone",
-    #        index_name="all-minilm-l6-v2",
-    #        namespace=self.datasource.id,
-    #        dimension=384,
-    #    )
-    #    query = "How many cars were sold?"
-    #    embedding = model.encode([query]).tolist()
-    #    return vectordb.query(queries=embedding, top_k=5, include_metadata=True)

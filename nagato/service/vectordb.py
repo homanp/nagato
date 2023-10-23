@@ -26,7 +26,10 @@ class PineconeVectorService(VectorDBService):
         super().__init__(
             index_name=index_name, dimension=dimension, filter_id=filter_id
         )
-        pinecone.init(api_key=config("PINECONE_API_KEY"))
+        pinecone.init(
+            api_key=config("PINECONE_API_KEY"),
+            environment=config("PINECONE_ENVIRONMENT"),
+        )
         # Create a new vector index if it doesn't
         # exist dimensions should be passed in the arguments
         if index_name not in pinecone.list_indexes():

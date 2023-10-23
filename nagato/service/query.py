@@ -26,9 +26,6 @@ class QueryService(ABC):
     def predict_with_embedding(self, filter_id: str):
         pass
 
-    def query_embedding(self, query: str, filter_id: str):
-        pass
-
 
 class ReplicateQueryService(QueryService):
     def __init__(

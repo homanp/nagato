@@ -1,17 +1,18 @@
 from typing import Callable, List
 
 import requests
+from decouple import config
 
 
 def create_vector_embeddings(
-    type: str, filter_id: str, url: str = None, content: str = None
+    type: str, model: str, filter_id: str, url: str = None, content: str = None
 ) -> List:
     from nagato.service.embedding import EmbeddingService
 
     embedding_service = EmbeddingService(type=type, content=content, url=url)
     documents = embedding_service.generate_documents()
     nodes = embedding_service.generate_chunks(documents=documents)
-    embedding_service.generate_embeddings(nodes=nodes, filter_id=filter_id)
+    embedding_service.generate_embeddings(nodes=nodes, filter_id=filter_id, model=model)
     return nodes
 
 
@@ -60,3 +61,24 @@ def predict(
         input="Hello world", callback=callback, enable_streaming=enable_streaming
     )
     return output
+
+
+def query_embedding(
+    query: str,
+    model: str = "all-minilm-l6-v2",
+    provider: str = "pinecone",
+    filter_id: str = None,
+) -> dict:
+    from sentence_transformers import SentenceTransformer
+
+    from nagato.service.embedding import get_vector_service
+
+    embedding_model = SentenceTransformer(model, use_auth_token=config("HF_API_KEY"))
+    vectordb = get_vector_service(
+        provider=provider,
+        index_name=model,
+        filter_id=filter_id,
+        dimension=384,
+    )
+    embedding = embedding_model.encode([query]).tolist()
+    return vectordb.query(queries=embedding, top_k=5, include_metadata=True)
