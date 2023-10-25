@@ -78,6 +78,7 @@ def predict_with_embedding(
     enable_streaming: bool = False,
 ) -> dict:
     from nagato.service.query import get_query_service
+    from nagato.service.embedding import MODEL_TO_INDEX
 
     similarity_search = query_embedding(
         query=input,
@@ -85,6 +86,7 @@ def predict_with_embedding(
         filter_id=embedding_filter_id,
         provider=embedding_provider,
     )
+    print(similarity_search["results"][0]["matches"])
     query_service = get_query_service(provider=provider, model=model)
     output = query_service.predict_with_embedding(
         input=input, callback=callback, enable_streaming=enable_streaming
@@ -94,20 +96,27 @@ def predict_with_embedding(
 
 def query_embedding(
     query: str,
-    model: str = "all-minilm-l6-v2",
+    model: str = "thenlper/gte-small",
     provider: str = "pinecone",
     filter_id: str = None,
+    rerank: bool = True,
 ) -> dict:
     from sentence_transformers import SentenceTransformer
 
-    from nagato.service.embedding import get_vector_service
+    from nagato.service.embedding import get_vector_service, MODEL_TO_INDEX
 
     embedding_model = SentenceTransformer(model, use_auth_token=config("HF_API_KEY"))
     vectordb = get_vector_service(
         provider=provider,
-        index_name=model,
+        index_name=MODEL_TO_INDEX[model].get("index_name"),
         filter_id=filter_id,
-        dimension=384,
+        dimension=MODEL_TO_INDEX[model].get("dimensions"),
     )
     embedding = embedding_model.encode([query]).tolist()
-    return vectordb.query(queries=embedding, top_k=5, include_metadata=True)
+    unranked = vectordb.query(queries=embedding, top_k=5, include_metadata=True)
+    if rerank:
+        top_k_matches = unranked["results"][0]["matches"]
+        ranked = vectordb.rerank(data=top_k_matches, query=query)
+        return ranked
+    else:
+        return unranked

@@ -27,6 +27,7 @@ wheel = "^0.41.0"
 python-dotenv = "^1.0.0"
 tqdm = "^4.66.1"
 setuptools = "^68.2.2"
+rank-bm25 = "^0.2.2"
 
 [build-system]
 requires = ["poetry-core"]

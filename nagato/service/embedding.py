@@ -12,6 +12,14 @@ from tqdm import tqdm
 from nagato.service.vectordb import get_vector_service
 
 
+MODEL_TO_INDEX = {
+    "all-MiniLM-L6-v2": {"index_name": "all-minilm-l6-v2", "dimensions": 384},
+    "thenlper/gte-base": {"index_name": "gte-base", "dimensions": 768},
+    "thenlper/gte-small": {"index_name": "gte-small", "dimensions": 384}
+    # Add more mappings here as needed
+}
+
+
 class EmbeddingService:
     def __init__(self, type: str, url: str = None, content: str = None):
         self.type = type
@@ -64,7 +72,7 @@ class EmbeddingService:
             return docs
 
     def generate_chunks(self, documents: List[Document]) -> List[Union[Document, None]]:
-        parser = SimpleNodeParser.from_defaults(chunk_size=350, chunk_overlap=20)
+        parser = SimpleNodeParser.from_defaults(chunk_size=1024, chunk_overlap=20)
         with tqdm(total=1, desc="🟠 Generating chunks") as pbar:
             nodes = parser.get_nodes_from_documents(documents, show_progress=False)
             pbar.update()
@@ -76,22 +84,27 @@ class EmbeddingService:
         nodes: List[Union[Document, None]],
         filter_id: str,
         model: str = "all-MiniLM-L6-v2",
+        embedding_provider: str = "PINECONE",
     ) -> List[ndarray]:
         vectordb = get_vector_service(
-            provider="pinecone",
-            index_name=model.lower(),
+            provider=embedding_provider,
+            index_name=MODEL_TO_INDEX[model].get("index_name"),
             filter_id=filter_id,
-            dimension=384,
+            dimension=MODEL_TO_INDEX[model].get("dimensions"),
         )
         model = SentenceTransformer(model, use_auth_token=config("HF_API_KEY"))
         embeddings = []
-        for node in nodes:
-            if node is not None:
-                embedding = (
-                    node.id_,
-                    model.encode(node.text).tolist(),
-                    {**node.metadata, "content": node.text},
-                )
-                embeddings.append(embedding)
-        vectordb.upsert(vectors=embeddings)
+        with tqdm(total=len(nodes), desc="🟠 Generating embeddings") as pbar:
+            for node in nodes:
+                if node is not None:
+                    embedding = (
+                        node.id_,
+                        model.encode(node.text).tolist(),
+                        {**node.metadata, "content": node.text},
+                    )
+                    embeddings.append(embedding)
+                pbar.update()
+            vectordb.upsert(vectors=embeddings)
+            pbar.set_description("🟢 Generating embeddings")
+
         return embeddings
