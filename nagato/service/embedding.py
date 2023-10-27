@@ -15,7 +15,9 @@ from nagato.service.vectordb import get_vector_service
 MODEL_TO_INDEX = {
     "all-MiniLM-L6-v2": {"index_name": "all-minilm-l6-v2", "dimensions": 384},
     "thenlper/gte-base": {"index_name": "gte-base", "dimensions": 768},
-    "thenlper/gte-small": {"index_name": "gte-small", "dimensions": 384}
+    "thenlper/gte-small": {"index_name": "gte-small", "dimensions": 384},
+    "thenlper/gte-large": {"index_name": "gte-large", "dimensions": 1024},
+    "infgrad/stella-base-en-v2": {"index_name": "stella-base", "dimensions": 768}
     # Add more mappings here as needed
 }
 
@@ -72,7 +74,7 @@ class EmbeddingService:
             return docs
 
     def generate_chunks(self, documents: List[Document]) -> List[Union[Document, None]]:
-        parser = SimpleNodeParser.from_defaults(chunk_size=1024, chunk_overlap=20)
+        parser = SimpleNodeParser.from_defaults(chunk_size=350, chunk_overlap=20)
         with tqdm(total=1, desc="🟠 Generating chunks") as pbar:
             nodes = parser.get_nodes_from_documents(documents, show_progress=False)
             pbar.update()

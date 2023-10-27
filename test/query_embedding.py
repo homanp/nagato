@@ -7,7 +7,9 @@ def callback_method(item):
 
 def main():
     result = query_embedding(
-        query="How many cars did Tesla sell in Q2 2023?", filter_id="001"
+        query="How many cars were sold in total?",
+        filter_id="007",
+        model="thenlper/gte-large",
     )
     print(result)
 

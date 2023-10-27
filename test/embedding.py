@@ -5,8 +5,8 @@ def main():
     result = create_vector_embeddings(
         type="PDF",
         url="https://digitalassets.tesla.com/tesla-contents/image/upload/IR/TSLA-Q2-2023-Update.pdf",
-        filter_id="004",
-        model="thenlper/gte-small",
+        filter_id="007",
+        model="thenlper/gte-large",
     )
     print(result)
 

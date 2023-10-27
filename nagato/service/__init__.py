@@ -97,9 +97,10 @@ def predict_with_embedding(
 def query_embedding(
     query: str,
     model: str = "thenlper/gte-small",
-    provider: str = "pinecone",
+    provider: str = "PINECONE",
     filter_id: str = None,
     rerank: bool = True,
+    top_k: int = 3,
 ) -> dict:
     from sentence_transformers import SentenceTransformer
 
@@ -113,10 +114,5 @@ def query_embedding(
         dimension=MODEL_TO_INDEX[model].get("dimensions"),
     )
     embedding = embedding_model.encode([query]).tolist()
-    unranked = vectordb.query(queries=embedding, top_k=5, include_metadata=True)
-    if rerank:
-        top_k_matches = unranked["results"][0]["matches"]
-        ranked = vectordb.rerank(data=top_k_matches, query=query)
-        return ranked
-    else:
-        return unranked
+    docs = vectordb.query(queries=embedding, top_k=top_k, include_metadata=True)
+    return docs

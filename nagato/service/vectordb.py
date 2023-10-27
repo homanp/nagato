@@ -49,21 +49,6 @@ class PineconeVectorService(VectorDBService):
             namespace=self.filter_id,
         )
 
-    def rerank(self, data: list, query: str) -> dict:
-        from rank_bm25 import BM25Okapi
-
-        docs = [match["metadata"]["content"] for match in data]
-        tokenized_docs = [doc.split(" ") for doc in docs]
-        bm25 = BM25Okapi(tokenized_docs)
-        tokenized_query = query.split(" ")
-        doc_scores = bm25.get_scores(tokenized_query)
-        for idx, match in enumerate(data[0]["matches"]):
-            match["bm25_score"] = doc_scores[idx]
-        data[0]["matches"] = sorted(
-            data[0]["matches"], key=lambda x: x["bm25_score"], reverse=True
-        )
-        return data
-
 
 def get_vector_service(
     provider: str, index_name: str, filter_id: str = None, dimension: int = 384
