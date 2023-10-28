@@ -55,6 +55,7 @@ def predict(
     input: str,
     provider: str,
     model: str,
+    system_prompt: str = None,
     callback: Callable = None,
     enable_streaming: bool = False,
 ) -> dict:
@@ -62,7 +63,10 @@ def predict(
 
     query_service = get_query_service(provider=provider, model=model)
     output = query_service.predict(
-        input=input, callback=callback, enable_streaming=enable_streaming
+        input=input,
+        callback=callback,
+        enable_streaming=enable_streaming,
+        system_prompt=system_prompt,
     )
     return output
 
@@ -75,10 +79,10 @@ def predict_with_embedding(
     embedding_model: str,
     embedding_filter_id: str,
     callback: Callable = None,
+    system_prompt: str = None,
     enable_streaming: bool = False,
 ) -> dict:
     from nagato.service.query import get_query_service
-    from nagato.service.embedding import MODEL_TO_INDEX
 
     similarity_search = query_embedding(
         query=input,
@@ -86,10 +90,14 @@ def predict_with_embedding(
         filter_id=embedding_filter_id,
         provider=embedding_provider,
     )
-    print(similarity_search["results"][0]["matches"])
+    context = similarity_search["results"][0]["matches"]
     query_service = get_query_service(provider=provider, model=model)
     output = query_service.predict_with_embedding(
-        input=input, callback=callback, enable_streaming=enable_streaming
+        input=input,
+        callback=callback,
+        enable_streaming=enable_streaming,
+        context=context,
+        system_prompt=system_prompt,
     )
     return output
 
@@ -99,8 +107,7 @@ def query_embedding(
     model: str = "thenlper/gte-small",
     provider: str = "PINECONE",
     filter_id: str = None,
-    rerank: bool = True,
-    top_k: int = 3,
+    top_k: int = 5,
 ) -> dict:
     from sentence_transformers import SentenceTransformer
 

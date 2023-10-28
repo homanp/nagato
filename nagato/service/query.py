@@ -5,7 +5,6 @@ import replicate
 from decouple import config
 
 from nagato.service.prompts import (
-    REPLICATE_SYSTEM_PROMPT,
     generate_replicaste_system_prompt,
 )
 
@@ -42,14 +41,18 @@ class ReplicateQueryService(QueryService):
         )
 
     def predict(
-        self, input: str, enable_streaming: bool = False, callback: Callable = None
+        self,
+        input: str,
+        enable_streaming: bool = False,
+        system_prompt: str = None,
+        callback: Callable = None,
     ):
         client = replicate.Client(api_token=config("REPLICATE_API_KEY"))
         output = client.run(
             self.model,
             input={
                 "prompt": input,
-                "system_prompt": REPLICATE_SYSTEM_PROMPT,
+                "system_prompt": system_prompt,
             },
         )
         if enable_streaming:
@@ -64,13 +67,16 @@ class ReplicateQueryService(QueryService):
         context: str,
         enable_streaming: bool = False,
         callback: Callable = None,
+        system_prompt: str = None,
     ):
         client = replicate.Client(api_token=config("REPLICATE_API_KEY"))
         output = client.run(
             self.model,
             input={
                 "prompt": input,
-                "system_prompt": generate_replicaste_system_prompt(context=context),
+                "system_prompt": generate_replicaste_system_prompt(
+                    context=context, system_prompt=system_prompt
+                ),
             },
         )
         if enable_streaming:
