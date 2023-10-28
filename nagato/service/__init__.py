@@ -111,7 +111,7 @@ def query_embedding(
 ) -> dict:
     from sentence_transformers import SentenceTransformer
 
-    from nagato.service.embedding import get_vector_service, MODEL_TO_INDEX
+    from nagato.service.embedding import MODEL_TO_INDEX, get_vector_service
 
     embedding_model = SentenceTransformer(model, use_auth_token=config("HF_API_KEY"))
     vectordb = get_vector_service(

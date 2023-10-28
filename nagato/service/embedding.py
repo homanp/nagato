@@ -11,7 +11,6 @@ from tqdm import tqdm
 
 from nagato.service.vectordb import get_vector_service
 
-
 MODEL_TO_INDEX = {
     "all-MiniLM-L6-v2": {"index_name": "all-minilm-l6-v2", "dimensions": 384},
     "thenlper/gte-base": {"index_name": "gte-base", "dimensions": 768},
