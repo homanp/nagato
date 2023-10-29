@@ -18,6 +18,10 @@ REPLICATE_FORMAT = (
 )
 
 
+def generate_replicate_rag_prompt(context: str, system_prompt: str):
+    return "You are a helpful assistant"
+
+
 def generate_qa_pair_prompt(
     format: str, context: str, num_of_qa_pairs: int = 10
 ) -> str:

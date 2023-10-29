@@ -16,7 +16,8 @@ MODEL_TO_INDEX = {
     "thenlper/gte-base": {"index_name": "gte-base", "dimensions": 768},
     "thenlper/gte-small": {"index_name": "gte-small", "dimensions": 384},
     "thenlper/gte-large": {"index_name": "gte-large", "dimensions": 1024},
-    "infgrad/stella-base-en-v2": {"index_name": "stella-base", "dimensions": 768}
+    "infgrad/stella-base-en-v2": {"index_name": "stella-base", "dimensions": 768},
+    "BAAI/bge-large-en-v1.5": {"index_name": "bge-large", "dimensions": 1024}
     # Add more mappings here as needed
 }
 
