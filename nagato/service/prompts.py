@@ -18,8 +18,14 @@ REPLICATE_FORMAT = (
 )
 
 
-def generate_replicate_rag_prompt(context: str, system_prompt: str):
-    return "You are a helpful assistant"
+def generate_replicate_rag_prompt(context: str, input: str) -> str:
+    prompt = (
+        "You are a helpful assistant that's an expert at answering questions.\n"
+        "Use the following context to answer any quesitons.\n\n"
+        f"Context:\n{context}\n\n"
+        f"Question:\n{input}"
+    )
+    return prompt
 
 
 def generate_qa_pair_prompt(

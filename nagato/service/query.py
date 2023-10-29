@@ -76,24 +76,25 @@ class ReplicateQueryService(QueryService):
         self,
         input: str,
         context: str,
+        system_prompt: str,
         enable_streaming: bool = False,
         callback: Callable = None,
-        system_prompt: str = None,
     ):
         litellm.api_key = self.api_key
-
+        prompt = generate_replicate_rag_prompt(context=context, input=input)
         output = litellm.completion(
             model=self.model,
             messages=[
                 {
-                    "content": generate_replicate_rag_prompt(
-                        context=context, system_prompt=system_prompt
-                    ),
+                    "content": system_prompt,
                     "role": "system",
                 },
-                {"content": input, "role": "user"},
+                {
+                    "content": prompt,
+                    "role": "user",
+                },
             ],
-            max_tokens=450,
+            max_tokens=2000,
             temperature=0,
             stream=enable_streaming,
         )
