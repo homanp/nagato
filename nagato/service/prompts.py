@@ -18,7 +18,9 @@ REPLICATE_FORMAT = (
 )
 
 
-def generate_qa_pair_prompt(format: str, context: str, num_of_qa_pairs: int = 10):
+def generate_qa_pair_prompt(
+    format: str, context: str, num_of_qa_pairs: int = 10
+) -> str:
     prompt = (
         "You are an AI assistant tasked with generating question and answer pairs"
         "for the given context using the given format. Only answer in the format with"

@@ -54,7 +54,7 @@ Full documentation of all methods in the `nagato` library will be posted soon.
 
   ```
 
-3. Create fine-tuned model
+4. Create fine-tuned model
   ```sh
   from nagato import create_finetuned_model
 
