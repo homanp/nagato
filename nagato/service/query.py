@@ -1,10 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Callable
 
-import replicate
-from decouple import config
-
 import litellm
+from decouple import config
 
 from nagato.service.prompts import (
     generate_replicate_rag_prompt,
