@@ -7,9 +7,9 @@ def callback_method(item):
 
 def main():
     result = query_embedding(
-        query="How many cars were sold in total?",
-        filter_id="007",
-        model="thenlper/gte-large",
+        query="What was Teslas total revenue in Q2 2023?",
+        filter_id="010",
+        model="jinaai/jina-embeddings-v2-base-en",
     )
     print(result)
 

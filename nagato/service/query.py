@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
 from typing import Callable
 
-import replicate
+import litellm
 from decouple import config
 
 from nagato.service.prompts import (
-    generate_replicaste_system_prompt,
+    generate_replicate_rag_prompt,
 )
 
 
@@ -17,6 +17,12 @@ class QueryService(ABC):
     ):
         self.provider = provider
         self.model = model
+        if self.provider == "REPLICATE":
+            self.api_key = config("REPLICATE_API_KEY")
+        elif self.provider == "OPENAI":
+            self.api_key = config("OPENAI_API_KEY")
+        else:
+            self.api_key = None
 
     @abstractmethod
     def predict(
@@ -47,43 +53,53 @@ class ReplicateQueryService(QueryService):
         system_prompt: str = None,
         callback: Callable = None,
     ):
-        client = replicate.Client(api_token=config("REPLICATE_API_KEY"))
-        output = client.run(
-            self.model,
-            input={
-                "prompt": input,
-                "system_prompt": system_prompt,
-            },
+        litellm.api_key = self.api_key
+
+        output = litellm.completion(
+            model=self.model,
+            messages=[
+                {"content": system_prompt, "role": "system"},
+                {"content": input, "role": "user"},
+            ],
+            max_tokens=450,
+            temperature=0,
+            stream=enable_streaming,
         )
         if enable_streaming:
-            for item in output:
-                callback(item)
-        else:
-            return "".join(item for item in output)
+            for chunk in output:
+                callback(chunk["choices"][0]["delta"]["content"])
+        return output
 
     def predict_with_embedding(
         self,
         input: str,
         context: str,
+        system_prompt: str,
         enable_streaming: bool = False,
         callback: Callable = None,
-        system_prompt: str = None,
     ):
-        client = replicate.Client(api_token=config("REPLICATE_API_KEY"))
-        output = client.run(
-            self.model,
-            input={
-                "prompt": input,
-                "system_prompt": generate_replicaste_system_prompt(
-                    context=context, system_prompt=system_prompt
-                ),
-            },
+        litellm.api_key = self.api_key
+        prompt = generate_replicate_rag_prompt(context=context, input=input)
+        output = litellm.completion(
+            model=self.model,
+            messages=[
+                {
+                    "content": system_prompt,
+                    "role": "system",
+                },
+                {
+                    "content": prompt,
+                    "role": "user",
+                },
+            ],
+            max_tokens=2000,
+            temperature=0,
+            stream=enable_streaming,
         )
         if enable_streaming:
-            for item in output:
-                callback(item)
-        else:
-            return "".join(item for item in output)
+            for chunk in output:
+                callback(chunk["choices"][0]["delta"]["content"])
+        return output
 
 
 def get_query_service(

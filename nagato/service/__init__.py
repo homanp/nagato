@@ -75,11 +75,11 @@ def predict_with_embedding(
     input: str,
     provider: str,
     model: str,
-    embedding_provider: str,
+    vector_db: str,
     embedding_model: str,
     embedding_filter_id: str,
     callback: Callable = None,
-    system_prompt: str = None,
+    system_prompt: str = "You are a helpful assistant",
     enable_streaming: bool = False,
 ) -> dict:
     from nagato.service.query import get_query_service
@@ -88,9 +88,10 @@ def predict_with_embedding(
         query=input,
         model=embedding_model,
         filter_id=embedding_filter_id,
-        provider=embedding_provider,
+        vector_db=vector_db,
     )
-    context = similarity_search["results"][0]["matches"]
+    docs = similarity_search["results"][0]["matches"]
+    context = docs[0]["metadata"]["content"]
     query_service = get_query_service(provider=provider, model=model)
     output = query_service.predict_with_embedding(
         input=input,
@@ -105,7 +106,7 @@ def predict_with_embedding(
 def query_embedding(
     query: str,
     model: str = "thenlper/gte-small",
-    provider: str = "PINECONE",
+    vector_db: str = "PINECONE",
     filter_id: str = None,
     top_k: int = 5,
 ) -> dict:
@@ -115,7 +116,7 @@ def query_embedding(
 
     embedding_model = SentenceTransformer(model, use_auth_token=config("HF_API_KEY"))
     vectordb = get_vector_service(
-        provider=provider,
+        provider=vector_db,
         index_name=MODEL_TO_INDEX[model].get("index_name"),
         filter_id=filter_id,
         dimension=MODEL_TO_INDEX[model].get("dimensions"),
