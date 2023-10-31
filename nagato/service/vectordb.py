@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import Any, List
 
 import pinecone
 from decouple import config
@@ -18,6 +18,10 @@ class VectorDBService(ABC):
 
     @abstractmethod
     def query():
+        pass
+
+    @abstractmethod
+    def rerank(self, query: str, documents: list, top_n: int = 3):
         pass
 
 
@@ -42,12 +46,38 @@ class PineconeVectorService(VectorDBService):
         self.index.upsert(vectors=vectors, namespace=self.filter_id)
 
     def query(self, queries: List[ndarray], top_k: int, include_metadata: bool = True):
-        return self.index.query(
+        results = self.index.query(
             queries=queries,
             top_k=top_k,
             include_metadata=include_metadata,
             namespace=self.filter_id,
         )
+        return results["results"][0]["matches"]
+
+    def rerank(self, query: str, documents: Any, top_n: int = 3):
+        from cohere import Client
+
+        api_key = config("COHERE_API_KEY")
+        if not api_key:
+            raise ValueError("API key for Cohere is not present.")
+        cohere_client = Client(api_key=api_key)
+        docs = [
+            (
+                f"{doc['metadata']['content']}\n\n"
+                f"page number: {doc['metadata']['page_label']}"
+            )
+            for doc in documents
+        ]
+        re_ranked = cohere_client.rerank(
+            model="rerank-multilingual-v2.0",
+            query=query,
+            documents=docs,
+            top_n=top_n,
+        ).results
+        results = []
+        for obj in re_ranked:
+            results.append(obj.document["text"])
+        return results
 
 
 def get_vector_service(

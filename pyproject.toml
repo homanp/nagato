@@ -28,6 +28,7 @@ python-dotenv = "^1.0.0"
 tqdm = "^4.66.1"
 setuptools = "^68.2.2"
 litellm = "^0.12.5"
+cohere = "^4.32"
 
 [build-system]
 requires = ["poetry-core"]

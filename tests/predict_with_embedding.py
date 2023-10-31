@@ -9,10 +9,10 @@ def main():
     result = predict_with_embedding(
         input="What was Teslas total revenue in Q2 2023?",
         provider="REPLICATE",
-        model="homanp/test:bc8afbabceaec8abb9b15fade05ff42db371b01fa251541b49c8ba9a9d44bc1f",
+        model="meta/llama-2-13b-chat:f4e2de70d66816a838a89eeeb621910adffb0dd0baba3976c96980970978018d",
         vector_db="PINECONE",
-        embedding_model="jinaai/jina-embeddings-v2-base-en",
-        embedding_filter_id="010",
+        embedding_model="all-MiniLM-L6-v2",
+        embedding_filter_id="011",
         enable_streaming=True,
         callback=callback_method,
     )
