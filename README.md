@@ -2,7 +2,7 @@
 
 # 🌸 Nagato
 
-### Nagato is a framework that enables any developer to streamline the creation of fine-tuned embedding and language models specifically tailored to a given corpus of data
+### Nagato is a framework that enables any developer to streamline the creation of fine-tuned embedding and language models specifically tailored to do question/answering on a corpus of data.
 
 <p>
 <img alt="GitHub Contributors" src="https://img.shields.io/github/contributors/homanp/Nagato" />
