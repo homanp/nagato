@@ -84,14 +84,12 @@ def predict_with_embedding(
 ) -> dict:
     from nagato.service.query import get_query_service
 
-    similarity_search = query_embedding(
+    context = query_embedding(
         query=input,
         model=embedding_model,
         filter_id=embedding_filter_id,
         vector_db=vector_db,
     )
-    docs = similarity_search["results"][0]["matches"]
-    context = docs[0]["metadata"]["content"]
     query_service = get_query_service(provider=provider, model=model)
     output = query_service.predict_with_embedding(
         input=input,
@@ -109,6 +107,7 @@ def query_embedding(
     vector_db: str = "PINECONE",
     filter_id: str = None,
     top_k: int = 5,
+    re_rank: bool = True,
 ) -> dict:
     from sentence_transformers import SentenceTransformer
 
@@ -123,4 +122,6 @@ def query_embedding(
     )
     embedding = embedding_model.encode([query]).tolist()
     docs = vectordb.query(queries=embedding, top_k=top_k, include_metadata=True)
-    return docs
+    if re_rank:
+        docs = vectordb.rerank(query=query, documents=docs, top_n=top_k)
+    return docs[0]

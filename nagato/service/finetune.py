@@ -230,7 +230,7 @@ class ReplicateFinetuningService(FinetuningService):
             version=REPLICATE_MODELS[self.base_model],
             input={
                 "train_data": training_file_url,
-                "num_train_epochs": 6,
+                "num_train_epochs": 3,
             },
             destination="homanp/test",
             webhook=webhook_url,
