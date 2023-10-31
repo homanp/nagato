@@ -62,8 +62,11 @@ class PineconeVectorService(VectorDBService):
             raise ValueError("API key for Cohere is not present.")
         cohere_client = Client(api_key=api_key)
         docs = [
-            f"{document['metadata']['content']}\n\npage number: {document['metadata']['page_label']}"
-            for document in documents
+            (
+                f"{doc['metadata']['content']}\n\n"
+                f"page number: {doc['metadata']['page_label']}"
+            )
+            for doc in documents
         ]
         re_ranked = cohere_client.rerank(
             model="rerank-multilingual-v2.0",
