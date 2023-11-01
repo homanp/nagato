@@ -1,11 +1,11 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import Callable
 
 import litellm
 from decouple import config
 
 from nagato.service.prompts import (
-    generate_replicate_rag_prompt,
+    generate_rag_prompt,
 )
 
 
@@ -24,27 +24,36 @@ class QueryService(ABC):
         else:
             self.api_key = None
 
-    @abstractmethod
-    def predict(
-        self, input: str, enable_streaming: bool = False, callback: Callable = None
-    ):
-        pass
-
-    @abstractmethod
-    def predict_with_embedding(self, filter_id: str):
-        pass
-
-
-class ReplicateQueryService(QueryService):
-    def __init__(
+    def predict_with_embedding(
         self,
-        provider: str,
-        model: str,
+        input: str,
+        context: str,
+        system_prompt: str,
+        enable_streaming: bool = False,
+        callback: Callable = None,
     ):
-        super().__init__(
-            provider=provider,
-            model=model,
+        litellm.api_key = self.api_key
+        prompt = generate_rag_prompt(context=context, input=input)
+        output = litellm.completion(
+            model=self.model,
+            messages=[
+                {
+                    "content": system_prompt,
+                    "role": "system",
+                },
+                {
+                    "content": prompt,
+                    "role": "user",
+                },
+            ],
+            max_tokens=2000,
+            temperature=0,
+            stream=enable_streaming,
         )
+        if enable_streaming:
+            for chunk in output:
+                callback(chunk["choices"][0]["delta"]["content"])
+        return output
 
     def predict(
         self,
@@ -69,51 +78,3 @@ class ReplicateQueryService(QueryService):
             for chunk in output:
                 callback(chunk["choices"][0]["delta"]["content"])
         return output
-
-    def predict_with_embedding(
-        self,
-        input: str,
-        context: str,
-        system_prompt: str,
-        enable_streaming: bool = False,
-        callback: Callable = None,
-    ):
-        litellm.api_key = self.api_key
-        prompt = generate_replicate_rag_prompt(context=context, input=input)
-        output = litellm.completion(
-            model=self.model,
-            messages=[
-                {
-                    "content": system_prompt,
-                    "role": "system",
-                },
-                {
-                    "content": prompt,
-                    "role": "user",
-                },
-            ],
-            max_tokens=2000,
-            temperature=0,
-            stream=enable_streaming,
-        )
-        if enable_streaming:
-            for chunk in output:
-                callback(chunk["choices"][0]["delta"]["content"])
-        return output
-
-
-def get_query_service(
-    provider: str = "openai",
-    model: str = "GPT_35_TURBO",
-):
-    services = {
-        "REPLICATE": ReplicateQueryService,
-        # Add other providers here
-    }
-    service = services.get(provider)
-    if service is None:
-        raise ValueError(f"Unsupported provider: {provider}")
-    return service(
-        provider=provider,
-        model=model,
-    )

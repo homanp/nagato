@@ -18,7 +18,7 @@ REPLICATE_FORMAT = (
 )
 
 
-def generate_replicate_rag_prompt(context: str, input: str) -> str:
+def generate_rag_prompt(context: str, input: str) -> str:
     prompt = (
         "You are an assistant for question-answering tasks. Use the following pieces"
         "of retrieved context to answer the question. If you don't know the answer, "
