@@ -1,8 +1,6 @@
 from typing import Callable, List
 
-import litellm
 import requests
-from decouple import config
 
 from nagato.service.embedding import (
     MODEL_TO_INDEX,
@@ -11,6 +9,7 @@ from nagato.service.embedding import (
 )
 from nagato.service.finetune import get_finetuning_service
 from nagato.service.query import QueryService
+from nagato.utils.lazy_model_loader import LazyModelLoader
 
 
 def create_vector_embeddings(
@@ -109,21 +108,17 @@ def query_embedding(
     top_k: int = 5,
     re_rank: bool = True,
 ) -> dict:
-    litellm.api_key = config("HF_API_KEY")
-
+    model_name = MODEL_TO_INDEX[model.split("/")[-1]].get("index_name")
+    model_dimensions = MODEL_TO_INDEX[model.split("/")[-1]].get("dimensions")
+    embedding_model = LazyModelLoader(model_name=model_name)
     vectordb = get_vector_service(
         provider=vector_db,
-        index_name=MODEL_TO_INDEX[model.split("/")[-1]].get("index_name"),
+        index_name=model_name,
         filter_id=filter_id,
-        dimension=MODEL_TO_INDEX[model.split("/")[-1]].get("dimensions"),
+        dimension=model_dimensions,
     )
-    embedding = litellm.embedding(model=model, input=[query])
-    queries = []
-    for data in embedding["data"]:
-        queries.append(data["embedding"])
-
-    docs = vectordb.query(queries=queries, top_k=top_k, include_metadata=True)
+    embedding = embedding_model.model.encode([query]).tolist()
+    docs = vectordb.query(queries=embedding, top_k=top_k, include_metadata=True)
     if re_rank:
         docs = vectordb.rerank(query=query, documents=docs, top_n=top_k)
-    print(docs)
     return docs[0]
