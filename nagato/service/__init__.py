@@ -1,14 +1,20 @@
 from typing import Callable, List
 
 import requests
-from decouple import config
+
+from nagato.service.embedding import (
+    MODEL_TO_INDEX,
+    EmbeddingService,
+    get_vector_service,
+)
+from nagato.service.finetune import get_finetuning_service
+from nagato.service.query import QueryService
+from nagato.utils.lazy_model_loader import LazyModelLoader
 
 
 def create_vector_embeddings(
     type: str, model: str, filter_id: str, url: str = None, content: str = None
 ) -> List:
-    from nagato.service.embedding import EmbeddingService
-
     embedding_service = EmbeddingService(type=type, content=content, url=url)
     documents = embedding_service.generate_documents()
     nodes = embedding_service.generate_chunks(documents=documents)
@@ -25,9 +31,6 @@ def create_finetuned_model(
     webhook_url: str = None,
     num_questions_per_chunk: int = 10,
 ) -> dict:
-    from nagato.service.embedding import EmbeddingService
-    from nagato.service.finetune import get_finetuning_service
-
     embedding_service = EmbeddingService(type=type, url=url, content=content)
     documents = embedding_service.generate_documents()
     nodes = embedding_service.generate_chunks(documents=documents)
@@ -59,9 +62,7 @@ def predict(
     callback: Callable = None,
     enable_streaming: bool = False,
 ) -> dict:
-    from nagato.service.query import get_query_service
-
-    query_service = get_query_service(provider=provider, model=model)
+    query_service = QueryService(provider=provider, model=model)
     output = query_service.predict(
         input=input,
         callback=callback,
@@ -82,15 +83,13 @@ def predict_with_embedding(
     system_prompt: str = "You are a helpful assistant",
     enable_streaming: bool = False,
 ) -> dict:
-    from nagato.service.query import get_query_service
-
     context = query_embedding(
         query=input,
         model=embedding_model,
         filter_id=embedding_filter_id,
         vector_db=vector_db,
     )
-    query_service = get_query_service(provider=provider, model=model)
+    query_service = QueryService(provider=provider, model=model)
     output = query_service.predict_with_embedding(
         input=input,
         callback=callback,
@@ -109,18 +108,16 @@ def query_embedding(
     top_k: int = 5,
     re_rank: bool = True,
 ) -> dict:
-    from sentence_transformers import SentenceTransformer
-
-    from nagato.service.embedding import MODEL_TO_INDEX, get_vector_service
-
-    embedding_model = SentenceTransformer(model, use_auth_token=config("HF_API_KEY"))
+    model_name = MODEL_TO_INDEX[model.split("/")[-1]].get("index_name")
+    model_dimensions = MODEL_TO_INDEX[model.split("/")[-1]].get("dimensions")
+    embedding_model = LazyModelLoader(model_name=model_name)
     vectordb = get_vector_service(
         provider=vector_db,
-        index_name=MODEL_TO_INDEX[model].get("index_name"),
+        index_name=model_name,
         filter_id=filter_id,
-        dimension=MODEL_TO_INDEX[model].get("dimensions"),
+        dimension=model_dimensions,
     )
-    embedding = embedding_model.encode([query]).tolist()
+    embedding = embedding_model.model.encode([query]).tolist()
     docs = vectordb.query(queries=embedding, top_k=top_k, include_metadata=True)
     if re_rank:
         docs = vectordb.rerank(query=query, documents=docs, top_n=top_k)

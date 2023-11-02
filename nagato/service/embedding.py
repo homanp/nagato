@@ -2,14 +2,13 @@ from tempfile import NamedTemporaryFile
 from typing import List, Union
 
 import requests
-from decouple import config
 from llama_index import Document, SimpleDirectoryReader
 from llama_index.node_parser import SimpleNodeParser
 from numpy import ndarray
-from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
 
 from nagato.service.vectordb import get_vector_service
+from nagato.utils.lazy_model_loader import LazyModelLoader
 
 MODEL_TO_INDEX = {
     "all-MiniLM-L6-v2": {"index_name": "all-minilm-l6-v2", "dimensions": 384},
@@ -98,14 +97,14 @@ class EmbeddingService:
             filter_id=filter_id,
             dimension=MODEL_TO_INDEX[model].get("dimensions"),
         )
-        model = SentenceTransformer(model, use_auth_token=config("HF_API_KEY"))
+        embedding_model = LazyModelLoader(model_name=model)
         embeddings = []
         with tqdm(total=len(nodes), desc="🟠 Generating embeddings") as pbar:
             for node in nodes:
                 if node is not None:
                     embedding = (
                         node.id_,
-                        model.encode(node.text).tolist(),
+                        embedding_model.model.encode(node.text).tolist(),
                         {**node.metadata, "content": node.text},
                     )
                     embeddings.append(embedding)
