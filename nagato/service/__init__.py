@@ -118,7 +118,11 @@ def query_embedding(
         dimension=MODEL_TO_INDEX[model.split("/")[-1]].get("dimensions"),
     )
     embedding = litellm.embedding(model=model, input=[query])
-    docs = vectordb.query(queries=embedding, top_k=top_k, include_metadata=True)
+    queries = []
+    for data in embedding["data"]:
+        queries.append(data["embedding"])
+
+    docs = vectordb.query(queries=queries, top_k=top_k, include_metadata=True)
     if re_rank:
         docs = vectordb.rerank(query=query, documents=docs, top_n=top_k)
     print(docs)
